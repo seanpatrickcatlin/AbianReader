@@ -101,7 +101,7 @@ class AbianReaderListView extends LinearLayout implements OnClickListener,
 		AbianReaderActivity theSingleton = AbianReaderActivity.getSingleton();
 
 		m_abianReaderListView = (ListView) AbianReaderActivity.getSingleton()
-				.findViewById(R.id.abian_reader_list_view);
+				.findViewById(R.id.abian_reader_list_view_listview);
 
 		m_abianReaderListView.setVisibility(View.GONE);
 
