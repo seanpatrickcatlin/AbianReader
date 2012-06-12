@@ -286,8 +286,9 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 
 				if (s_bTryJson && s_bUseJsonContent) {
 					feedUrl = s_singleton.getString(R.string.site_url_str);
-					feedUrl += "/?json=1&count=" + m_abianReaderData.getNumberOfItems()
-							+ "&page=" + m_abianReaderData.getPageNumber();
+					feedUrl += "/?json=1&count="
+							+ m_abianReaderData.getNumberOfItems() + "&page="
+							+ m_abianReaderData.getPageNumber();
 				} else {
 					if (feedUrl.contains("?")) {
 						feedUrl += "&";
@@ -633,8 +634,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 
 						for (int rssItemPos = 0; rssItemPos < m_abianReaderData
 								.getNumberOfItems(); rssItemPos++) {
-							if (m_abianReaderData.getItemNumber(rssItemPos).getLink()
-									.equalsIgnoreCase(thisPostLink)) {
+							if (m_abianReaderData.getItemNumber(rssItemPos)
+									.getLink().equalsIgnoreCase(thisPostLink)) {
 								m_abianReaderData
 										.getItemNumber(rssItemPos)
 										.setThumbnailLink(thisPostThumbnailLink);
@@ -806,7 +807,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 				}
 			} else if (qName.compareTo(XML_TIME) == 0) {
 				try {
-					m_abianReaderData.setLastUpdateTime(Long.parseLong(thisText));
+					m_abianReaderData.setLastUpdateTime(Long
+							.parseLong(thisText));
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());
 				}
@@ -837,7 +839,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 			if (m_rssItemView.getVisibility() == View.VISIBLE) {
 				int itemPosition = m_rssItemView.getTargetRssItem();
 
-				AbianReaderItem targetItem = m_abianReaderData.getItemNumber(itemPosition);
+				AbianReaderItem targetItem = m_abianReaderData
+						.getItemNumber(itemPosition);
 
 				if (targetItem != null) {
 					String shareMessage = getString(R.string.share_message);
@@ -862,7 +865,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 			if (m_rssItemView.getVisibility() == View.VISIBLE) {
 				int itemPosition = m_rssItemView.getTargetRssItem();
 
-				AbianReaderItem targetItem = m_abianReaderData.getItemNumber(itemPosition);
+				AbianReaderItem targetItem = m_abianReaderData
+						.getItemNumber(itemPosition);
 
 				if (targetItem != null) {
 					AbianReaderActivity.openUrlInBrowser(targetItem
@@ -1064,7 +1068,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener {
 			serializer.endTag(null, XML_TIME);
 
 			serializer.startTag(null, XML_PAGE);
-			serializer.text(Integer.toString(m_abianReaderData.getPageNumber()));
+			serializer
+					.text(Integer.toString(m_abianReaderData.getPageNumber()));
 			serializer.endTag(null, XML_PAGE);
 
 			serializer.startTag(null, XML_AUTO_UPDATE_TIME);
