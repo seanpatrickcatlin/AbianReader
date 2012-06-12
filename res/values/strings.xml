@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_str">Droid WordPress Feed Reader App</string>
+    <string name="site_name_str">Droid WordPress Feed Reader Site</string>
+    <string name="site_url_str"></string>
+    <string name="feed_url_str"></string>
+    <string name="loading_title_str"></string>
+    <string name="loading_message_str">Loading. Please Wait</string>
+    <string name="empty_str"></string>
+    <string name="no_network_str">No connection to network</string>
+    <string name="no_items_str">No items found</string>
+    <string name="ok_str">OK</string>
+    <string name="cancel_str">Cancel</string>
+    <string name="update_frequency_str">Update Frequency</string>
+    <string name="try_json"></string>
+    <string name="share_message">Check out this article</string>
+    <string name="share_title">Share</string>
+    <string name="featured_tag">featured</string>
+    <string name="icon_description">Icon</string>
+</resources>

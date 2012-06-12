@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/abian_reader_list_item_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:background="@drawable/rss_list_item_drawable"
+    android:padding="6dip" >
+
+    <ImageView
+        android:id="@+id/abian_reader_list_item_icon_image_view"
+        android:layout_width="?android:attr/listPreferredItemHeight"
+        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="6dip"
+        android:duplicateParentState="true"
+        android:contentDescription="@string/icon_description"
+        android:src="@drawable/app_icon" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@id/abian_reader_list_item_icon_image_view"
+        android:orientation="vertical"
+        android:weightSum="1" >
+
+        <TextView
+            android:id="@+id/abian_reader_list_item_title_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="0.5"
+            android:duplicateParentState="true"
+            android:ellipsize="end"
+            android:textColor="#FF000000"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/abian_reader_list_item_details_text_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="0.5"
+            android:duplicateParentState="true"
+            android:textColor="#FF606060" />
+    </LinearLayout>
+
+</RelativeLayout>
