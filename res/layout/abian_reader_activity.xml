@@ -1,84 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#FF000000"
-    >
+    android:orientation="vertical" >
+
+    <ImageView
+        android:id="@+id/app_splash_screen_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#FF000000"
+        android:contentDescription="@string/empty_str"
+        android:src="@drawable/splash_screen" />
 
     <LinearLayout
+        android:id="@+id/app_main_layout"
         android:layout_width="fill_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:orientation="horizontal"
-        android:weightSum="8"
-        android:background="@color/list_header_background_color"
-        android:id="@+id/app_header_linear_layout"
-        >
-
-        <ImageView
-            android:id="@+id/refresh_button"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:src="@drawable/refresh"
-            android:layout_weight="1"
-            android:scaleType="centerInside"
-            android:contentDescription="@string/empty_str"
-        />
-
-        <ImageView
-            android:id="@+id/header_button"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:src="@drawable/app_header_logo"
-            android:layout_weight="6"
-            android:scaleType="centerInside"
-            android:contentDescription="@string/empty_str"
-        />
-
-        <ImageView
-            android:id="@+id/auto_update_button"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:src="@drawable/settings"
-            android:layout_weight="1"
-            android:scaleType="centerInside"
-            android:contentDescription="@string/empty_str"
-        />
-    </LinearLayout>
-
-    <com.abiansoftware.lib.reader.AbianReaderListView
-        android:id="@+id/abian_reader_list_view"
-        android:layout_width="fill_parent" 
         android:layout_height="fill_parent"
-        android:visibility="visible"
-        android:background="@color/list_background_color"
-        >
-        
-        <ListView
-            android:id="@+id/abian_reader_list_view_listview"
-            android:layout_width="fill_parent" 
+        android:background="#FF000000"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:id="@+id/app_header_linear_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:background="@color/list_header_background_color"
+            android:orientation="horizontal"
+            android:weightSum="8" >
+
+            <ImageView
+                android:id="@+id/refresh_button"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:contentDescription="@string/empty_str"
+                android:scaleType="centerInside"
+                android:src="@drawable/refresh" />
+
+            <ImageView
+                android:id="@+id/header_button"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="6"
+                android:contentDescription="@string/empty_str"
+                android:scaleType="centerInside"
+                android:src="@drawable/app_header_logo" />
+
+            <ImageView
+                android:id="@+id/settings_button"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:contentDescription="@string/empty_str"
+                android:scaleType="centerInside"
+                android:src="@drawable/settings" />
+        </LinearLayout>
+
+        <com.abiansoftware.lib.reader.AbianReaderListView
+            android:id="@+id/abian_reader_list_view"
+            android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:background="@color/list_background_color"
-            android:cacheColorHint="#00000000"
-            android:divider="@drawable/dash"
-            android:dividerHeight="3dp"
-            android:fillViewport="true"
-        />    
-    </com.abiansoftware.lib.reader.AbianReaderListView>
+            android:visibility="visible" >
 
-    <com.abiansoftware.lib.reader.AbianReaderItemView
-        android:id="@+id/abian_reader_item_view"
-        android:layout_width="fill_parent" 
-        android:layout_height="fill_parent"
-        android:visibility="gone"
-        >
+            <ListView
+                android:id="@+id/abian_reader_list_view_listview"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@color/list_background_color"
+                android:cacheColorHint="#00000000"
+                android:divider="@drawable/dash"
+                android:dividerHeight="3dp"
+                android:fillViewport="true" />
+        </com.abiansoftware.lib.reader.AbianReaderListView>
 
-        <WebView
-            android:id="@+id/abian_reader_item_view_webview"
-            android:layout_width="fill_parent" 
+        <com.abiansoftware.lib.reader.AbianReaderItemView
+            android:id="@+id/abian_reader_item_view"
+            android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            >
-        
-        </WebView>
-    </com.abiansoftware.lib.reader.AbianReaderItemView>
+            android:visibility="gone" >
+
+            <WebView
+                android:id="@+id/abian_reader_item_view_webview"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" >
+            </WebView>
+        </com.abiansoftware.lib.reader.AbianReaderItemView>
+    </LinearLayout>
+
 </LinearLayout>

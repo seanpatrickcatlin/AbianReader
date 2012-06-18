@@ -35,166 +35,178 @@ import android.webkit.WebSettings.PluginState;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 
-class AbianReaderItemView extends LinearLayout {
-	private static final String TAG = "AbianReaderItemView";
+class AbianReaderItemView extends LinearLayout
+{
+    private static final String TAG = "AbianReaderItemView";
 
-	private WebView m_webView;
-	private int m_targetRssItemNumber;
+    private WebView m_webView;
+    private int m_targetRssItemNumber;
 
-	private HtmlCleaner m_htmlCleaner;
-	private CleanerProperties m_cleanerProps;
-	private SimpleHtmlSerializer m_htmlSerializer;
+    private HtmlCleaner m_htmlCleaner;
+    private CleanerProperties m_cleanerProps;
+    private SimpleHtmlSerializer m_htmlSerializer;
 
-	public AbianReaderItemView(Context context) {
-		super(context);
+    public AbianReaderItemView(Context context)
+    {
+        super(context);
 
-		initializeViewBeforePopulation(context);
-	}
+        initializeViewBeforePopulation(context);
+    }
 
-	public AbianReaderItemView(Context context, AttributeSet attrs) {
-		super(context, attrs);
+    public AbianReaderItemView(Context context, AttributeSet attrs)
+    {
+        super(context, attrs);
 
-		initializeViewBeforePopulation(context);
-	}
+        initializeViewBeforePopulation(context);
+    }
 
-	private void initializeViewBeforePopulation(Context context) {
-		m_webView = null;
-		m_targetRssItemNumber = 0;
+    private void initializeViewBeforePopulation(Context context)
+    {
+        m_webView = null;
+        m_targetRssItemNumber = 0;
 
-		m_cleanerProps = new CleanerProperties();
-		m_htmlCleaner = new HtmlCleaner(m_cleanerProps);
-		m_htmlSerializer = new SimpleHtmlSerializer(m_cleanerProps);
-	}
+        m_cleanerProps = new CleanerProperties();
+        m_htmlCleaner = new HtmlCleaner(m_cleanerProps);
+        m_htmlSerializer = new SimpleHtmlSerializer(m_cleanerProps);
+    }
 
-	public void initializeViewAfterPopulation(Context context) {
-		m_webView = (WebView) AbianReaderActivity.getSingleton().findViewById(
-				R.id.abian_reader_item_view_webview);
-		m_webView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
-		// m_webView.getSettings().setJavaScriptEnabled(true);
-		m_webView.getSettings().setPluginState(PluginState.ON_DEMAND);
-		// m_webView.getSettings().setLoadWithOverviewMode(true);
-		// m_webView.getSettings().setUseWideViewPort(true);
-		m_webView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
-		m_webView.setScrollbarFadingEnabled(true);
-	}
+    public void initializeViewAfterPopulation(Context context)
+    {
+        m_webView = (WebView)AbianReaderActivity.GetSingleton().findViewById(R.id.abian_reader_item_view_webview);
+        m_webView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
+        // m_webView.getSettings().setJavaScriptEnabled(true);
+        m_webView.getSettings().setPluginState(PluginState.ON_DEMAND);
+        // m_webView.getSettings().setLoadWithOverviewMode(true);
+        // m_webView.getSettings().setUseWideViewPort(true);
+        m_webView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
+        m_webView.setScrollbarFadingEnabled(true);
+    }
 
-	public void clearWebView() {
-		m_webView.loadData("<html><body></body></html>", "text/html", "UTF-8");
-	}
+    public void clearWebView()
+    {
+        m_webView.loadData("<html><body></body></html>", "text/html", "UTF-8");
+    }
 
-	public int getTargetRssItem() {
-		return m_targetRssItemNumber;
-	}
+    public int getTargetRssItem()
+    {
+        return m_targetRssItemNumber;
+    }
 
-	public void setTargetRssItem(int itemPosition) {
-		m_targetRssItemNumber = itemPosition;
+    public void setTargetRssItem(int itemPosition)
+    {
+        m_targetRssItemNumber = itemPosition;
 
-		AbianReaderData theData = AbianReaderActivity.getData();
+        AbianReaderData theData = AbianReaderActivity.GetData();
 
-		if (theData != null) {
-			AbianReaderItem theItem = theData.getItemNumber(itemPosition);
+        if(theData != null)
+        {
+            AbianReaderItem theItem = theData.getItemNumber(itemPosition);
 
-			if (theItem != null) {
-				int nWid = AbianReaderActivity.s_width;
-				int nHei = AbianReaderActivity.s_height;
+            if(theItem != null)
+            {
+                theItem.setArticleHasBeenRead();
 
-				float thisScale = m_webView.getScale();
+                int nWid = AbianReaderActivity.s_width;
+                int nHei = AbianReaderActivity.s_height;
 
-				Log.e(TAG, "Scale: " + thisScale);
+                float thisScale = m_webView.getScale();
 
-				float nScaledWid = (nWid / thisScale);
-				float nScaledHei = (nHei / thisScale);
+                float nScaledWid = (nWid / thisScale);
+                float nScaledHei = (nHei / thisScale);
 
-				float nMaxWid = (nScaledWid * 0.9f);
-				float nMaxHei = (nScaledHei * 0.9f);
+                float nMaxWid = (nScaledWid * 0.9f);
+                float nMaxHei = (nScaledHei * 0.9f);
 
-				if (nWid > nHei) {
-					nMaxHei = (nScaledHei * 0.75f);
-				}
+                if(nWid > nHei)
+                {
+                    nMaxHei = (nScaledHei * 0.75f);
+                }
 
-				String maxWidStr = Integer.toString((int) nMaxWid);
-				String maxHeiStr = Integer.toString((int) nMaxHei);
+                String maxWidStr = Integer.toString((int)nMaxWid);
+                String maxHeiStr = Integer.toString((int)nMaxHei);
 
-				String constraints = "{ ";
-				constraints += "max-width: " + maxWidStr + "; ";
-				constraints += "max-height: " + maxHeiStr + "; ";
-				constraints += "width: auto; ";
-				constraints += "height: auto; ";
-				constraints += "display: block; ";
-				constraints += "margin-left: auto; ";
-				constraints += "margin-right: auto; ";
-				constraints += "}";
-				Log.e(TAG, "constraints: " + constraints);
+                String constraints = "{ ";
+                constraints += "max-width: " + maxWidStr + "; ";
+                constraints += "max-height: " + maxHeiStr + "; ";
+                constraints += "width: auto; ";
+                constraints += "height: auto; ";
+                constraints += "display: block; ";
+                constraints += "margin-left: auto; ";
+                constraints += "margin-right: auto; ";
+                constraints += "}";
 
-				String ourHeadNode = "<head>";
-				// use this to tell webview not to scale the webpage
-				// ourHeadNode +=
-				// "<meta name=\"viewport\" content=\"target-densitydpi=device-dpi\" />";
-				ourHeadNode += "<style>";
-				ourHeadNode += "img " + constraints;
-				ourHeadNode += "\niframe " + constraints;
-				ourHeadNode += "\ndiv " + constraints;
-				ourHeadNode += "</style>";
-				ourHeadNode += "</head>";
+                String ourHeadNode = "<head>";
+                // use this to tell webview not to scale the webpage
+                // ourHeadNode +=
+                // "<meta name=\"viewport\" content=\"target-densitydpi=device-dpi\" />";
+                ourHeadNode += "<style>";
+                ourHeadNode += "img " + constraints;
+                ourHeadNode += "\niframe " + constraints;
+                ourHeadNode += "\ndiv " + constraints;
+                ourHeadNode += "</style>";
+                ourHeadNode += "</head>";
 
-				String ourHeader = "<html>" + ourHeadNode + "<body><h2>"
-						+ theItem.getTitle() + "</h2>";
-				ourHeader += "<small>By " + theItem.getCreator() + " posted "
-						+ theItem.getPubDate() + "</small>";
+                String ourHeader = "<html>" + ourHeadNode + "<body><h2>" + theItem.getTitle() + "</h2>";
+                ourHeader += "<small>By " + theItem.getCreator() + " posted " + theItem.getPubDate() + "</small>";
 
-				if (theItem.getFeaturedImageLink().length() != 0) {
-					ourHeader += "<br /><br />";
-					ourHeader += "<a href=\"";
-					ourHeader += theItem.getFeaturedImageLink();
-					ourHeader += "\">";
-					ourHeader += "<img src=\"";
-					ourHeader += theItem.getFeaturedImageLink();
-					ourHeader += "\" /> </a>";
-				}
+                if(theItem.getFeaturedImageLink().length() != 0)
+                {
+                    ourHeader += "<br /><br />";
+                    ourHeader += "<a href=\"";
+                    ourHeader += theItem.getFeaturedImageLink();
+                    ourHeader += "\">";
+                    ourHeader += "<img src=\"";
+                    ourHeader += theItem.getFeaturedImageLink();
+                    ourHeader += "\" /> </a>";
+                }
 
-				// ourHeader += "<br />";
+                // ourHeader += "<br />";
 
-				String ourFooter = "";
-				ourFooter += "<br /><a href=\""
-						+ theItem.getLink()
-						+ "\" target=\"_blank\">Open the full article in your browser</a><br />";
-				ourFooter += "</body></html>";
+                String ourFooter = "";
+                ourFooter += "<br /><a href=\"" + theItem.getLink() + "\" target=\"_blank\">Open the full article in your browser</a><br />";
+                ourFooter += "</body></html>";
 
-				String ourHtml = ourHeader + theItem.getContent() + ourFooter;
+                String ourHtml = ourHeader + theItem.getContent() + ourFooter;
 
-				TagNode theCleanTagNode = m_htmlCleaner.clean(ourHtml);
+                TagNode theCleanTagNode = m_htmlCleaner.clean(ourHtml);
 
-				TagNode imgNodes[] = theCleanTagNode.getElementsByName("img",
-						true);
+                TagNode imgNodes[] = theCleanTagNode.getElementsByName("img", true);
 
-				for (int i = 0; i < imgNodes.length; i++) {
-					imgNodes[i].removeAttribute("width");
-					imgNodes[i].removeAttribute("height");
-				}
+                for(int i = 0; i < imgNodes.length; i++)
+                {
+                    imgNodes[i].removeAttribute("width");
+                    imgNodes[i].removeAttribute("height");
+                }
 
-				TagNode iFrameNodes[] = theCleanTagNode.getElementsByName(
-						"iframe", true);
+                TagNode iFrameNodes[] = theCleanTagNode.getElementsByName("iframe", true);
 
-				for (int i = 0; i < iFrameNodes.length; i++) {
-					iFrameNodes[i].removeAttribute("width");
-					iFrameNodes[i].removeAttribute("height");
-				}
+                for(int i = 0; i < iFrameNodes.length; i++)
+                {
+                    iFrameNodes[i].removeAttribute("width");
+                    iFrameNodes[i].removeAttribute("height");
+                }
 
-				try {
-					ourHtml = m_htmlSerializer.getAsString(theCleanTagNode);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+                try
+                {
+                    ourHtml = m_htmlSerializer.getAsString(theCleanTagNode);
+                }
+                catch(IOException e)
+                {
+                    e.printStackTrace();
+                }
 
-				m_webView.loadDataWithBaseURL(null, ourHtml, "text/html",
-						"UTF-8", null);
-				// m_webView.loadDataWithBaseURL(theItem.getLink(), ourHtml,
-				// "text/html", "UTF-8", null);
-			} else {
-				Log.e(TAG, "TheItem is null");
-			}
-		} else {
-			Log.e(TAG, "TheData is null");
-		}
-	}
+                m_webView.loadDataWithBaseURL(null, ourHtml, "text/html", "UTF-8", null);
+                // m_webView.loadDataWithBaseURL(theItem.getLink(), ourHtml,
+                // "text/html", "UTF-8", null);
+            }
+            else
+            {
+                Log.e(TAG, "TheItem is null");
+            }
+        }
+        else
+        {
+            Log.e(TAG, "TheData is null");
+        }
+    }
 }

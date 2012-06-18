@@ -27,547 +27,693 @@ import android.graphics.BitmapFactory;
 
 import java.text.DateFormat;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import com.loopj.android.http.*;
 
 import android.text.format.Time;
 import android.util.Log;
 
-public class AbianReaderData {
-	private static final String TAG = "AbianReaderData";
-
-	static public class AbianReaderItem {
-		private String m_itemTitle;
-		private String m_itemLink;
-		private String m_itemContent;
-		private String m_itemDescription;
-		private Date m_itemPubDate;
-		private String m_itemCreator;
-		private String m_itemCommentsLink;
-		private int m_itemCommentCount;
-		private String m_thumbnailLink;
-		private Bitmap m_thumbnailBitmap;
-		private String m_featuredImageLink;
-		private Bitmap m_featuredImageBitmap;
-		private boolean m_bIsFeatured;
-
-		public AbianReaderItem() {
-			m_itemTitle = "";
-			m_itemLink = "";
-			m_itemContent = "";
-			m_itemDescription = "";
-			m_itemPubDate = new Date();
-			m_itemCreator = "";
-			m_itemCommentsLink = "";
-			m_itemCommentCount = 0;
-			m_thumbnailLink = "";
-			m_thumbnailBitmap = null;
-			m_featuredImageLink = "";
-			m_bIsFeatured = false;
-		}
-
-		public String getTitle() {
-			return m_itemTitle;
-		}
-
-		public String getLink() {
-			return m_itemLink;
-		}
-
-		public String getContent() {
-			return m_itemContent;
-		}
-
-		public String getDescription() {
-			return m_itemDescription;
-		}
-
-		public String getPubDate() {
-			String dateStr = DateFormat.getDateInstance(DateFormat.LONG)
-					.format(m_itemPubDate);
-			String timeStr = DateFormat.getTimeInstance(DateFormat.SHORT)
-					.format(m_itemPubDate);
-			return dateStr + " at " + timeStr;
-		}
-
-		public String getPubDateOnly() {
-			return DateFormat.getDateInstance(DateFormat.LONG).format(
-					m_itemPubDate);
-		}
-
-		public String getPubDateLong() {
-			SimpleDateFormat sdf = new SimpleDateFormat(
-					"EEE, dd MMM yyyy HH:mm:ss Z");
-
-			return sdf.format(m_itemPubDate);
-		}
-
-		public String getCreator() {
-			return m_itemCreator;
-		}
-
-		public String getCommentsLink() {
-			return m_itemCommentsLink;
-		}
-
-		public int getCommentsCount() {
-			return m_itemCommentCount;
-		}
-
-		public void setTitle(String itemTitle) {
-			if (itemTitle == null) {
-				itemTitle = "";
-			}
-
-			m_itemTitle = itemTitle;
-		}
-
-		public void setLink(String itemLink) {
-			if (itemLink == null) {
-				itemLink = "";
-			}
-
-			m_itemLink = itemLink;
-		}
-
-		public void setContent(String itemContent) {
-			if (itemContent == null) {
-				itemContent = "";
-			}
-
-			m_itemContent = itemContent;
-		}
-
-		public void setDescription(String itemDescription) {
-			if (itemDescription == null) {
-				itemDescription = "";
-			}
-
-			m_itemDescription = itemDescription;
-		}
-
-		public void setPubDate(String itemPubDate) {
-			SimpleDateFormat sdf = new SimpleDateFormat(
-					"EEE, dd MMM yyyy HH:mm:ss Z");
-
-			if (itemPubDate == null) {
-				itemPubDate = "";
-			}
-
-			try {
-				m_itemPubDate = sdf.parse(itemPubDate);
-			} catch (ParseException e) {
-				Log.e(TAG, e.toString());
-			}
-		}
-
-		public void setJsonDate(String itemPubDate) {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-			if (itemPubDate == null) {
-				itemPubDate = "";
-			}
-
-			try {
-				m_itemPubDate = sdf.parse(itemPubDate);
-			} catch (ParseException e) {
-				Log.e(TAG, e.toString());
-			}
-		}
-
-		public void setCreator(String itemCreator) {
-			if (itemCreator == null) {
-				itemCreator = "";
-			}
-
-			m_itemCreator = itemCreator;
-		}
-
-		public void setCommentsLink(String itemCommentsLink) {
-			if (itemCommentsLink == null) {
-				itemCommentsLink = "";
-			}
-
-			m_itemCommentsLink = itemCommentsLink;
-		}
-
-		public void setCommentCount(int itemCommentCount) {
-			if (itemCommentCount < 0) {
-				itemCommentCount = 0;
-			}
-
-			m_itemCommentCount = itemCommentCount;
-		}
-
-		public void setThumbnailLink(String thumbnailLink) {
-			if (thumbnailLink == null) {
-				thumbnailLink = "";
-			}
-
-			m_thumbnailLink = thumbnailLink;
-
-			if (thumbnailLink.length() > 0) {
-				String[] allowedContentTypes = new String[] { "image/png",
-						"image/jpeg", "image/gif" };
-
-				AbianReaderActivity.doHttpBinaryGet(thumbnailLink,
-						new BinaryHttpResponseHandler(allowedContentTypes) {
-							@Override
-							public void onSuccess(byte[] fileData) {
-								Log.e(TAG, "AsyncHttp good thumb");
-
-								m_thumbnailBitmap = BitmapFactory
-										.decodeByteArray(fileData, 0,
-												fileData.length);
-
-								if (m_thumbnailBitmap == null) {
-									Log.e(TAG,
-											"AsyncHttp thumb bitmap decode failed");
-								}
-
-								AbianReaderActivity.updateListPlease();
-								// Do something with the file
-							}
-
-							public void onFailure(Throwable e, byte[] imageData) {
-								Log.e(TAG, "AsyncHttp failed thumb");
-								// Response failed :(
-							}
-						});
-				// new GetThumbnailTask().execute((Void)null);
-			}
-		}
-
-		public String getThumbnailLink() {
-			if (m_thumbnailLink == null) {
-				m_thumbnailLink = "";
-			}
-
-			return m_thumbnailLink;
-		}
-
-		public void setFeaturedImageLink(String featuredImageLink,
-				boolean bIsFeatured) {
-			if (featuredImageLink == null) {
-				featuredImageLink = "";
-			}
-
-			m_featuredImageLink = featuredImageLink;
-
-			m_bIsFeatured = bIsFeatured;
-
-			if ((featuredImageLink.length() > 0) && m_bIsFeatured) {
-				String[] allowedContentTypes = new String[] { "image/png",
-						"image/jpeg", "image/gif" };
-
-				AbianReaderActivity.doHttpBinaryGet(featuredImageLink,
-						new BinaryHttpResponseHandler(allowedContentTypes) {
-							@Override
-							public void onSuccess(byte[] fileData) {
-								Log.e(TAG, "AsyncHttp good featured");
-								m_featuredImageBitmap = BitmapFactory
-										.decodeByteArray(fileData, 0,
-												fileData.length);
-
-								if (m_featuredImageBitmap == null) {
-									Log.e(TAG,
-											"AsyncHttp featured bitmap decode failed");
-								} else {
-									float desiredHeight = (AbianReaderActivity
-											.getSingleton()
-											.getPreferredListItemHeight() * 2.5f);
-
-									float scaleFactor = desiredHeight
-											/ m_featuredImageBitmap.getHeight();
-									float desiredWidth = m_featuredImageBitmap
-											.getWidth() * scaleFactor;
-
-									m_featuredImageBitmap = Bitmap
-											.createScaledBitmap(
-													m_featuredImageBitmap,
-													(int) desiredWidth,
-													(int) desiredHeight, false);
-								}
-
-								AbianReaderActivity.updateListPlease();
-								// Do something with the file
-							}
-
-							public void onFailure(Throwable e, byte[] imageData) {
-								Log.e(TAG, "AsyncHttp failed");
-								// Response failed :(
-							}
-						});
-
-				// new GetFeaturedImageTask().execute((Void)null);
-			}
-		}
-
-		public String getFeaturedImageLink() {
-			if (m_featuredImageLink == null) {
-				m_featuredImageLink = "";
-			}
-
-			return m_featuredImageLink;
-		}
-
-		public boolean getIsFeatured() {
-			return m_bIsFeatured;
-		}
-
-		public Bitmap getThumbnailBitmap() {
-			return m_thumbnailBitmap;
-		}
-
-		public void setThumbnailBitmap(Bitmap thumbnailBitmap) {
-			m_thumbnailBitmap = thumbnailBitmap;
-		}
-
-		public Bitmap getFeaturedImageBitmap() {
-			return m_featuredImageBitmap;
-		}
-
-		public void setFeaturedImageBitmap(Bitmap featuredImageBitmap) {
-			m_featuredImageBitmap = featuredImageBitmap;
-		}
-
-		/*
-		 * private class GetThumbnailTask extends AsyncTask<Void, Void, Void> {
-		 * 
-		 * @Override protected Void doInBackground(Void... params) { try {
-		 * 
-		 * // get the thumbnail URL urlObject2 = new URL(m_thumbnailLink);
-		 * HttpURLConnection httpConnection2 =
-		 * (HttpURLConnection)urlObject2.openConnection();
-		 * httpConnection2.setConnectTimeout(30 * 1000);
-		 * httpConnection2.setReadTimeout(30 * 1000);
-		 * 
-		 * if(httpConnection2.getResponseCode() != HttpURLConnection.HTTP_OK) {
-		 * Log.d(TAG,
-		 * "getInputStream() HTTP returning null.  Received HTTP response code: "
-		 * + httpConnection2.getResponseCode() + ", Url: " +
-		 * urlObject2.toString()); return null; }
-		 * 
-		 * InputStream is2 = httpConnection2.getInputStream();
-		 * 
-		 * if(is2 != null) { m_thumbnailBitmap =
-		 * BitmapFactory.decodeStream(is2); } } catch(Exception e) { Log.e(TAG,
-		 * e.toString()); }
-		 * 
-		 * return null; }
-		 * 
-		 * @Override protected void onPostExecute(Void param) {
-		 * AbianReaderActivity.updateListPlease(); } }
-		 * 
-		 * private class GetFeaturedImageTask extends AsyncTask<Void, Void,
-		 * Void> {
-		 * 
-		 * @Override protected Void doInBackground(Void... params) { try {
-		 * if((m_featuredImageLink == null) || (m_featuredImageLink.length() <=
-		 * 0)) { return null; }
-		 * 
-		 * // get the thumbnail URL urlObject2 = new URL(m_featuredImageLink);
-		 * HttpURLConnection httpConnection2 =
-		 * (HttpURLConnection)urlObject2.openConnection();
-		 * httpConnection2.setConnectTimeout(30 * 1000);
-		 * httpConnection2.setReadTimeout(30 * 1000);
-		 * 
-		 * if(httpConnection2.getResponseCode() != HttpURLConnection.HTTP_OK) {
-		 * Log.d(TAG,
-		 * "getInputStream() HTTP returning null.  Received HTTP response code: "
-		 * + httpConnection2.getResponseCode() + ", Url: " +
-		 * urlObject2.toString()); return null; }
-		 * 
-		 * InputStream is2 = httpConnection2.getInputStream();
-		 * 
-		 * if(is2 != null) { m_featuredImageBitmap =
-		 * BitmapFactory.decodeStream(is2);
-		 * 
-		 * float desiredHeight =
-		 * (AbianReaderActivity.getSingleton().getPreferredListItemHeight
-		 * ()*2.5f);
-		 * 
-		 * float scaleFactor = desiredHeight/m_featuredImageBitmap.getHeight();
-		 * float desiredWidth = m_featuredImageBitmap.getWidth() * scaleFactor;
-		 * 
-		 * m_featuredImageBitmap =
-		 * Bitmap.createScaledBitmap(m_featuredImageBitmap, (int)desiredWidth,
-		 * (int)desiredHeight, false); } } catch(Exception e) { Log.e(TAG,
-		 * e.toString()); }
-		 * 
-		 * return null; }
-		 * 
-		 * @Override protected void onPostExecute(Void param) {
-		 * AbianReaderActivity.updateListPlease(); } }
-		 */
-	}
-
-	private Vector<AbianReaderItem> m_itemVector;
-	private Time m_lastUpdateTime;
-	private int m_pageNumber;
-	private int m_autoUpdateTimeInMinutes;
-	private int m_currentFeaturePosition;
-
-	public AbianReaderData() {
-		m_itemVector = new Vector<AbianReaderItem>();
-		m_itemVector.clear();
-		m_lastUpdateTime = new Time(Time.getCurrentTimezone());
-		m_lastUpdateTime.set(0);
-		m_pageNumber = 1;
-		m_autoUpdateTimeInMinutes = 0;
-		m_currentFeaturePosition = -1;
-	}
-
-	public void addItem(AbianReaderItem newItem) {
-		m_itemVector.add(newItem);
-	}
-
-	public int getNumberOfItems() {
-		return m_itemVector.size();
-	}
-
-	public AbianReaderItem getItemNumber(int itemNumber) {
-		if ((itemNumber >= 0) && (itemNumber < getNumberOfItems())) {
-			return m_itemVector.elementAt(itemNumber);
-		}
-
-		return null;
-	}
-
-	public void clear() {
-		m_itemVector.clear();
-		m_lastUpdateTime.set(0);
-		m_currentFeaturePosition = -1;
-	}
-
-	public void setLastUpdateTimeToNow() {
-		m_lastUpdateTime.setToNow();
-	}
-
-	public void setLastUpdateTime(long lastUpdateTimeInMillis) {
-		m_lastUpdateTime.set(lastUpdateTimeInMillis);
-	}
-
-	public Time getLastUpdateTime() {
-		return m_lastUpdateTime;
-	}
-
-	public void setPageNumber(int newPageNumber) {
-		if (newPageNumber < 1) {
-			newPageNumber = 1;
-		}
-
-		m_pageNumber = newPageNumber;
-	}
-
-	public int getPageNumber() {
-		return m_pageNumber;
-	}
-
-	public int getAutoUpdateTimeInMinutes() {
-		return m_autoUpdateTimeInMinutes;
-	}
-
-	public void setAutoUpdateTimeInMinutes(int minutes) {
-		if (minutes < 0) {
-			minutes = 0;
-		}
-
-		m_autoUpdateTimeInMinutes = minutes;
-	}
-
-	public int getNumberedOfFeaturedArticles() {
-		int retVal = 0;
-
-		for (int i = 0; i < this.m_itemVector.size(); i++) {
-			if (m_itemVector.get(i).getIsFeatured()) {
-				retVal++;
-			}
-		}
-
-		return retVal;
-	}
-
-	private int getFeaturedArticlePosition(int featuredArticleNumber) {
-		int featuredArticleCount = 0;
-
-		for (int i = 0; i < m_itemVector.size(); i++) {
-			if (m_itemVector.get(i).getIsFeatured()) {
-				if (featuredArticleNumber == featuredArticleCount) {
-					return i;
-				}
-
-				featuredArticleCount++;
-			}
-		}
-
-		return 0;
-	}
-
-	public AbianReaderItem getFeaturedItem() {
-		if (getNumberedOfFeaturedArticles() <= 0) {
-			return null;
-		}
-
-		if (m_currentFeaturePosition == -1) {
-			m_currentFeaturePosition = 0;
-		}
-
-		return getItemNumber(getFeaturedArticlePosition(m_currentFeaturePosition));
-	}
-
-	public int getFeaturedItemPositionInFeaturedList() {
-		if (getNumberedOfFeaturedArticles() <= 0) {
-			return 0;
-		}
-
-		if (m_currentFeaturePosition == -1) {
-			m_currentFeaturePosition = 0;
-		}
-
-		return (m_currentFeaturePosition + 1);
-	}
-
-	public int getFeaturedItemPositionInCompleteList() {
-		if (getNumberedOfFeaturedArticles() <= 0) {
-			return 0;
-		}
-
-		if (m_currentFeaturePosition == -1) {
-			m_currentFeaturePosition = 0;
-		}
-
-		return getFeaturedArticlePosition(m_currentFeaturePosition);
-	}
-
-	public void nextFeaturedArticle() {
-		if (getNumberedOfFeaturedArticles() <= 0) {
-			return;
-		}
-
-		if (m_currentFeaturePosition == -1) {
-			m_currentFeaturePosition = 0;
-		} else {
-			m_currentFeaturePosition++;
-		}
-
-		if (m_currentFeaturePosition >= getNumberedOfFeaturedArticles()) {
-			m_currentFeaturePosition = 0;
-		}
-	}
-
-	public void previousFeaturedArticle() {
-		if (getNumberedOfFeaturedArticles() <= 0) {
-			return;
-		}
-
-		if (m_currentFeaturePosition == -1) {
-			m_currentFeaturePosition = 0;
-		} else {
-			m_currentFeaturePosition--;
-		}
-
-		if (m_currentFeaturePosition < 0) {
-			m_currentFeaturePosition = (getNumberedOfFeaturedArticles() - 1);
-		}
-	}
+public class AbianReaderData
+{
+    private static final String TAG = "AbianReaderData";
+
+    public static final int MAX_DATA_ITEMS = 100;
+
+    private static Object SYNC_OBJ = new Object();
+
+    static public class AbianReaderItem
+    {
+        private String m_itemTitle;
+        private String m_itemLink;
+        private String m_itemContent;
+        private String m_itemDescription;
+        private Date m_itemPubDate;
+        private String m_itemCreator;
+        private String m_itemCommentsLink;
+        private int m_itemCommentCount;
+        private String m_thumbnailLink;
+        private Bitmap m_thumbnailBitmap;
+        private String m_featuredImageLink;
+        private Bitmap m_featuredImageBitmap;
+        private boolean m_bIsFeatured;
+        @SuppressWarnings("unused")
+        private boolean m_bIsGettingThumbnail;
+        @SuppressWarnings("unused")
+        private boolean m_bIsGettingFeatureImage;
+        @SuppressWarnings("unused")
+        private boolean m_bIsGettingExtraJsonData;
+
+        private boolean m_bHasBeenRead;
+
+        public AbianReaderItem()
+        {
+            m_itemTitle = "";
+            m_itemLink = "";
+            m_itemContent = "";
+            m_itemDescription = "";
+            m_itemPubDate = new Date();
+            m_itemCreator = "";
+            m_itemCommentsLink = "";
+            m_itemCommentCount = 0;
+            m_thumbnailLink = "";
+            m_thumbnailBitmap = null;
+            m_featuredImageLink = "";
+            m_bIsFeatured = false;
+            m_bHasBeenRead = false;
+
+            m_bIsGettingThumbnail = false;
+            m_bIsGettingFeatureImage = false;
+            m_bIsGettingExtraJsonData = false;
+        }
+
+        public String getTitle()
+        {
+            return m_itemTitle;
+        }
+
+        public String getLink()
+        {
+            return m_itemLink;
+        }
+
+        public String getContent()
+        {
+            return m_itemContent;
+        }
+
+        public String getDescription()
+        {
+            return m_itemDescription;
+        }
+
+        public String getPubDate()
+        {
+            String dateStr = DateFormat.getDateInstance(DateFormat.LONG).format(m_itemPubDate);
+            String timeStr = DateFormat.getTimeInstance(DateFormat.SHORT).format(m_itemPubDate);
+            return dateStr + " at " + timeStr;
+        }
+
+        public String getPubDateOnly()
+        {
+            return DateFormat.getDateInstance(DateFormat.LONG).format(m_itemPubDate);
+        }
+
+        public String getPubDateLong()
+        {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+
+            return sdf.format(m_itemPubDate);
+        }
+
+        public String getCreator()
+        {
+            return m_itemCreator;
+        }
+
+        public String getCommentsLink()
+        {
+            return m_itemCommentsLink;
+        }
+
+        public int getCommentsCount()
+        {
+            return m_itemCommentCount;
+        }
+
+        public void setTitle(String itemTitle)
+        {
+            if(itemTitle == null)
+            {
+                itemTitle = "";
+            }
+
+            m_itemTitle = itemTitle;
+        }
+
+        public void setLink(String itemLink)
+        {
+            if(itemLink == null)
+            {
+                itemLink = "";
+            }
+
+            m_itemLink = itemLink;
+        }
+
+        public void setContent(String itemContent)
+        {
+            if(itemContent == null)
+            {
+                itemContent = "";
+            }
+
+            m_itemContent = itemContent;
+        }
+
+        public void setDescription(String itemDescription)
+        {
+            if(itemDescription == null)
+            {
+                itemDescription = "";
+            }
+
+            m_itemDescription = itemDescription;
+        }
+
+        public void setPubDate(String itemPubDate)
+        {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+
+            if(itemPubDate == null)
+            {
+                itemPubDate = "";
+            }
+
+            try
+            {
+                m_itemPubDate = sdf.parse(itemPubDate);
+            }
+            catch(ParseException e)
+            {
+                Log.e(TAG, e.toString());
+            }
+        }
+
+        public void setJsonDate(String itemPubDate)
+        {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            if(itemPubDate == null)
+            {
+                itemPubDate = "";
+            }
+
+            try
+            {
+                m_itemPubDate = sdf.parse(itemPubDate);
+            }
+            catch(ParseException e)
+            {
+                Log.e(TAG, e.toString());
+            }
+        }
+
+        public void setCreator(String itemCreator)
+        {
+            if(itemCreator == null)
+            {
+                itemCreator = "";
+            }
+
+            m_itemCreator = itemCreator;
+        }
+
+        public void setCommentsLink(String itemCommentsLink)
+        {
+            if(itemCommentsLink == null)
+            {
+                itemCommentsLink = "";
+            }
+
+            m_itemCommentsLink = itemCommentsLink;
+        }
+
+        public void setCommentCount(int itemCommentCount)
+        {
+            if(itemCommentCount < 0)
+            {
+                itemCommentCount = 0;
+            }
+
+            m_itemCommentCount = itemCommentCount;
+        }
+
+        public void setThumbnailLink(String thumbnailLink)
+        {
+            if(thumbnailLink == null)
+            {
+                thumbnailLink = "";
+            }
+
+            m_thumbnailLink = thumbnailLink;
+
+            if(thumbnailLink.length() > 0)
+            {
+                String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+
+                m_bIsGettingThumbnail = true;
+
+                AbianReaderActivity.DoHttpBinaryGet(thumbnailLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                {
+                    @Override
+                    public void onSuccess(byte[] fileData)
+                    {
+                        synchronized(SYNC_OBJ)
+                        {
+                            m_thumbnailBitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
+                        }
+
+                        if(m_thumbnailBitmap == null)
+                        {
+                            Log.e(TAG, "AsyncHttp thumb bitmap decode failed");
+                        }
+
+                        AbianReaderActivity.UpdateListPlease();
+
+                        m_bIsGettingThumbnail = false;
+                    }
+
+                    public void onFailure(Throwable e, byte[] imageData)
+                    {
+                        Log.e(TAG, "AsyncHttp failed thumb");
+
+                        m_bIsGettingThumbnail = false;
+                    }
+                });
+            }
+        }
+
+        public String getThumbnailLink()
+        {
+            if(m_thumbnailLink == null)
+            {
+                m_thumbnailLink = "";
+            }
+
+            return m_thumbnailLink;
+        }
+
+        public void setFeaturedImageLink(String featuredImageLink, boolean bIsFeatured)
+        {
+            if(featuredImageLink == null)
+            {
+                featuredImageLink = "";
+            }
+
+            m_featuredImageLink = featuredImageLink;
+
+            m_bIsFeatured = bIsFeatured;
+
+            if((featuredImageLink.length() > 0) && m_bIsFeatured)
+            {
+                String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+
+                m_bIsGettingFeatureImage = true;
+
+                AbianReaderActivity.DoHttpBinaryGet(featuredImageLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                {
+                    @Override
+                    public void onSuccess(byte[] fileData)
+                    {
+                        if(fileData == null)
+                        {
+                            Log.e(TAG, "WTF, file data is null");
+                        }
+                        
+                        synchronized(SYNC_OBJ)
+                        {
+                            m_featuredImageBitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
+                        }
+
+                        if(m_featuredImageBitmap == null)
+                        {
+                            Log.e(TAG, "AsyncHttp featured bitmap decode failed");
+                        }
+                        else
+                        {
+                            float desiredHeight = (AbianReaderActivity.GetSingleton().getPreferredListItemHeight() * 2.5f);
+
+                            float scaleFactor = desiredHeight / m_featuredImageBitmap.getHeight();
+                            float desiredWidth = m_featuredImageBitmap.getWidth() * scaleFactor;
+
+                            synchronized(SYNC_OBJ)
+                            {
+                                m_featuredImageBitmap = Bitmap.createScaledBitmap(m_featuredImageBitmap, (int)desiredWidth, (int)desiredHeight, false);
+                            }
+                        }
+
+                        AbianReaderActivity.UpdateListPlease();
+
+                        m_bIsGettingFeatureImage = false;
+                    }
+
+                    public void onFailure(Throwable e, byte[] imageData)
+                    {
+                        Log.e(TAG, "AsyncHttp failed");
+
+                        m_bIsGettingFeatureImage = false;
+                    }
+                });
+            }
+        }
+
+        public String getFeaturedImageLink()
+        {
+            if(m_featuredImageLink == null)
+            {
+                m_featuredImageLink = "";
+            }
+
+            return m_featuredImageLink;
+        }
+
+        public boolean getIsFeatured()
+        {
+            return m_bIsFeatured;
+        }
+
+        public Bitmap getThumbnailBitmap()
+        {
+            return m_thumbnailBitmap;
+        }
+
+        public void setThumbnailBitmap(Bitmap thumbnailBitmap)
+        {
+            m_thumbnailBitmap = thumbnailBitmap;
+        }
+
+        public Bitmap getFeaturedImageBitmap()
+        {
+            return m_featuredImageBitmap;
+        }
+
+        public void setFeaturedImageBitmap(Bitmap featuredImageBitmap)
+        {
+            m_featuredImageBitmap = featuredImageBitmap;
+        }
+
+        public void getExtraJsonData(final boolean bGetFeature)
+        {
+            m_bIsGettingExtraJsonData = true;
+
+            String extraJsonDataUrl = m_itemLink;
+            extraJsonDataUrl += "/?json=1&include=thumbnail,attachments";
+
+            if(bGetFeature)
+            {
+                extraJsonDataUrl += ",tags";
+            }
+
+            AbianReaderActivity.DoHttpGet(extraJsonDataUrl, null, new AsyncHttpResponseHandler()
+            {
+                @Override
+                public void onSuccess(String response)
+                {
+                    try
+                    {
+                        JSONObject rootObject = new JSONObject(response);
+
+                        JSONObject thisPostObject = rootObject.getJSONObject("post");
+
+                        boolean bThisPostIsFeatured = false;
+                        String thisPostThumbnailLink = thisPostObject.getString("thumbnail");
+                        String thisFeatureImageLink = "";
+
+                        if(thisPostObject.has("attachments"))
+                        {
+                            JSONArray attachmentArray = thisPostObject.getJSONArray("attachments");
+
+                            for(int attachmentPos = 0; attachmentPos < attachmentArray.length(); attachmentPos++)
+                            {
+                                JSONObject thisAttachment = attachmentArray.getJSONObject(attachmentPos);
+
+                                if(thisAttachment.has("images"))
+                                {
+                                    JSONObject imagesObject = thisAttachment.getJSONObject("images");
+
+                                    JSONObject fullImageObject = imagesObject.getJSONObject("full");
+                                    String thisUrl = fullImageObject.getString("url");
+
+                                    if(thisFeatureImageLink.length() == 0)
+                                    {
+                                        thisFeatureImageLink = thisUrl;
+                                    }
+                                    else
+                                    {
+                                        int matchingCurrentFeature = AbianReaderActivity.GetNumberOfSameCharacters(thisPostThumbnailLink, thisFeatureImageLink);
+                                        int matchingThisFeature = AbianReaderActivity.GetNumberOfSameCharacters(thisPostThumbnailLink, thisUrl);
+
+                                        if(matchingThisFeature > matchingCurrentFeature)
+                                        {
+                                            thisFeatureImageLink = thisUrl;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if(thisPostObject.has("tags") && bGetFeature)
+                        {
+                            JSONArray tagArray = thisPostObject.getJSONArray("tags");
+
+                            for(int tagPos = 0; tagPos < tagArray.length(); tagPos++)
+                            {
+                                JSONObject thisTag = tagArray.getJSONObject(tagPos);
+
+                                String tagName = thisTag.getString("title");
+
+                                if(tagName.equalsIgnoreCase(AbianReaderActivity.GetFeaturedTag()))
+                                {
+                                    bThisPostIsFeatured = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        setThumbnailLink(thisPostThumbnailLink);
+                        setFeaturedImageLink(thisFeatureImageLink, bThisPostIsFeatured);
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
+                }
+            });
+        }
+
+        public boolean getHasArticleBeenRead()
+        {
+            return m_bHasBeenRead;
+        }
+
+        public void setArticleHasBeenRead()
+        {
+            m_bHasBeenRead = true;
+        }
+    }
+
+    private Vector<AbianReaderItem> m_itemVector;
+    private Time m_lastUpdateTime;
+    private int m_pageNumber;
+    private int m_autoUpdateTimeInMinutes;
+    private int m_currentFeaturePosition;
+
+    public AbianReaderData()
+    {
+        m_itemVector = new Vector<AbianReaderItem>();
+        m_itemVector.clear();
+        m_lastUpdateTime = new Time(Time.getCurrentTimezone());
+        m_lastUpdateTime.set(0);
+        m_pageNumber = 1;
+        m_autoUpdateTimeInMinutes = 0;
+        m_currentFeaturePosition = -1;
+    }
+
+    public void addItem(AbianReaderItem newItem)
+    {
+        m_itemVector.add(newItem);
+    }
+
+    public int getNumberOfItems()
+    {
+        return m_itemVector.size();
+    }
+
+    public AbianReaderItem getItemNumber(int itemNumber)
+    {
+        if((itemNumber >= 0) && (itemNumber < getNumberOfItems()))
+        {
+            return m_itemVector.elementAt(itemNumber);
+        }
+
+        return null;
+    }
+
+    public void clear()
+    {
+        m_itemVector.clear();
+        m_lastUpdateTime.set(0);
+        m_currentFeaturePosition = -1;
+    }
+
+    public void setLastUpdateTimeToNow()
+    {
+        m_lastUpdateTime.setToNow();
+    }
+
+    public void setLastUpdateTime(long lastUpdateTimeInMillis)
+    {
+        m_lastUpdateTime.set(lastUpdateTimeInMillis);
+    }
+
+    public Time getLastUpdateTime()
+    {
+        return m_lastUpdateTime;
+    }
+
+    public void setPageNumber(int newPageNumber)
+    {
+        if(newPageNumber < 1)
+        {
+            newPageNumber = 1;
+        }
+
+        m_pageNumber = newPageNumber;
+    }
+
+    public int getPageNumber()
+    {
+        return m_pageNumber;
+    }
+
+    public int getAutoUpdateTimeInMinutes()
+    {
+        return m_autoUpdateTimeInMinutes;
+    }
+
+    public void setAutoUpdateTimeInMinutes(int minutes)
+    {
+        if(minutes < 0)
+        {
+            minutes = 0;
+        }
+
+        m_autoUpdateTimeInMinutes = minutes;
+    }
+
+    public int getNumberedOfFeaturedArticles()
+    {
+        int retVal = 0;
+
+        for(int i = 0; i < this.m_itemVector.size(); i++)
+        {
+            if(m_itemVector.get(i).getIsFeatured())
+            {
+                retVal++;
+            }
+        }
+
+        return retVal;
+    }
+
+    private int getFeaturedArticlePosition(int featuredArticleNumber)
+    {
+        int featuredArticleCount = 0;
+
+        for(int i = 0; i < m_itemVector.size(); i++)
+        {
+            if(m_itemVector.get(i).getIsFeatured())
+            {
+                if(featuredArticleNumber == featuredArticleCount)
+                {
+                    return i;
+                }
+
+                featuredArticleCount++;
+            }
+        }
+
+        return 0;
+    }
+
+    public AbianReaderItem getFeaturedItem()
+    {
+        if(getNumberedOfFeaturedArticles() <= 0)
+        {
+            return null;
+        }
+
+        if(m_currentFeaturePosition == -1)
+        {
+            m_currentFeaturePosition = 0;
+        }
+
+        return getItemNumber(getFeaturedArticlePosition(m_currentFeaturePosition));
+    }
+
+    public int getFeaturedItemPositionInFeaturedList()
+    {
+        if(getNumberedOfFeaturedArticles() <= 0)
+        {
+            return 0;
+        }
+
+        if(m_currentFeaturePosition == -1)
+        {
+            m_currentFeaturePosition = 0;
+        }
+
+        return(m_currentFeaturePosition + 1);
+    }
+
+    public int getFeaturedItemPositionInCompleteList()
+    {
+        if(getNumberedOfFeaturedArticles() <= 0)
+        {
+            return 0;
+        }
+
+        if(m_currentFeaturePosition == -1)
+        {
+            m_currentFeaturePosition = 0;
+        }
+
+        return getFeaturedArticlePosition(m_currentFeaturePosition);
+    }
+
+    public void nextFeaturedArticle()
+    {
+        if(getNumberedOfFeaturedArticles() <= 0)
+        {
+            return;
+        }
+
+        if(m_currentFeaturePosition == -1)
+        {
+            m_currentFeaturePosition = 0;
+        }
+        else
+        {
+            m_currentFeaturePosition++;
+        }
+
+        if(m_currentFeaturePosition >= getNumberedOfFeaturedArticles())
+        {
+            m_currentFeaturePosition = 0;
+        }
+    }
+
+    public void previousFeaturedArticle()
+    {
+        if(getNumberedOfFeaturedArticles() <= 0)
+        {
+            return;
+        }
+
+        if(m_currentFeaturePosition == -1)
+        {
+            m_currentFeaturePosition = 0;
+        }
+        else
+        {
+            m_currentFeaturePosition--;
+        }
+
+        if(m_currentFeaturePosition < 0)
+        {
+            m_currentFeaturePosition = (getNumberedOfFeaturedArticles() - 1);
+        }
+    }
 }

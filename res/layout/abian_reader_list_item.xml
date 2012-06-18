@@ -6,30 +6,46 @@
     android:background="@drawable/rss_list_item_drawable"
     android:padding="6dip" >
 
-    <ImageView
-        android:id="@+id/abian_reader_list_item_icon_image_view"
-        android:layout_width="?android:attr/listPreferredItemHeight"
-        android:layout_height="?android:attr/listPreferredItemHeight"
+    <LinearLayout
+        android:id="@+id/abian_reader_list_item_icon_linear_layout"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_marginRight="6dip"
-        android:duplicateParentState="true"
-        android:contentDescription="@string/icon_description"
-        android:src="@drawable/app_icon" />
+        android:padding="4dip" >
+
+        <ProgressBar
+            android:id="@+id/abian_reader_list_item_progress_bar"
+            style="@android:style/Widget.ProgressBar.Inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true" />
+
+        <ImageView
+            android:id="@+id/abian_reader_list_item_icon_image_view"
+            android:layout_width="?android:attr/listPreferredItemHeight"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:layout_marginRight="6dip"
+            android:contentDescription="@string/icon_description"
+            android:duplicateParentState="true"
+            android:src="@drawable/app_icon" />
+    </LinearLayout>
 
     <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/abian_reader_list_item_icon_image_view"
+        android:layout_toRightOf="@id/abian_reader_list_item_icon_linear_layout"
         android:orientation="vertical"
-        android:weightSum="1" >
+        android:layout_centerVertical="true"
+        android:weightSum="1"
+        android:padding="4dip" >
 
         <TextView
             android:id="@+id/abian_reader_list_item_title_text_view"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:duplicateParentState="true"
             android:ellipsize="end"
@@ -39,7 +55,7 @@
         <TextView
             android:id="@+id/abian_reader_list_item_details_text_view"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:duplicateParentState="true"
             android:textColor="#FF606060" />
