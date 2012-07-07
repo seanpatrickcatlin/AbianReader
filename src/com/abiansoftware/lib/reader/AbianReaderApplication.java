@@ -15,6 +15,16 @@ You should have received a copy of the GNU General Public License
 along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ TODO List
+ Long Term Goals
+ - View Comments in App - Possible, I think this is in the JSON
+ - Swipe between Articles when reading one - Possible, just takes time
+ - Have multiple lists that you can swipe between, "Latest", "Features", "Android", etc...
+ - Add a search feature - Possible, just takes time
+ - Leave comments in App, Can't Happen Right now... I think
+ */
+
 package com.abiansoftware.lib.reader;
 
 import org.apache.http.client.params.ClientPNames;

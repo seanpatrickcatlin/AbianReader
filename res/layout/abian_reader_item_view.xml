@@ -1,0 +1,13 @@
+<com.abiansoftware.lib.reader.AbianReaderItemView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/abian_reader_item_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FF000000"
+    android:orientation="vertical" >
+
+    <WebView
+        android:id="@+id/abian_reader_item_view_webview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
+</com.abiansoftware.lib.reader.AbianReaderItemView>

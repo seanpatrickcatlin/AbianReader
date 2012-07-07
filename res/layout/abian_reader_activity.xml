@@ -62,34 +62,18 @@
             android:layout_height="fill_parent"
             android:background="@color/list_background_color"
             android:orientation="vertical"
-            android:visibility="visible"
-            android:weightSum="5" >
+            android:visibility="visible" >
 
- 
             <ListView
                 android:id="@+id/abian_reader_list_view_listview"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_weight="2"
                 android:background="@color/list_background_color"
                 android:cacheColorHint="#00000000"
                 android:divider="@drawable/dash"
                 android:dividerHeight="3dp"
                 android:fillViewport="true" />
         </com.abiansoftware.lib.reader.AbianReaderListView>
-
-        <com.abiansoftware.lib.reader.AbianReaderItemView
-            android:id="@+id/abian_reader_item_view"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:visibility="gone" >
-
-            <WebView
-                android:id="@+id/abian_reader_item_view_webview"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" >
-            </WebView>
-        </com.abiansoftware.lib.reader.AbianReaderItemView>
     </LinearLayout>
 
 </LinearLayout>

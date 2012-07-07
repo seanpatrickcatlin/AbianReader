@@ -15,16 +15,6 @@ You should have received a copy of the GNU General Public License
 along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- TODO List
- Long Term Goals
- - View Comments in App - Possible, I think this is in the JSON
- - Swipe between Articles when reading one - Possible, just takes time
- - Have multiple lists that you can swipe between, "Latest", "Features", "Android", etc...
- - Add a search feature - Possible, just takes time
- - Leave comments in App, Can't Happen Right now... I think
- */
-
 package com.abiansoftware.lib.reader;
 
 import java.io.BufferedReader;
@@ -65,7 +55,6 @@ import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
@@ -116,7 +105,6 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
     private RefreshFeedTask m_refreshFeedTask;
 
     private AbianReaderListView m_rssFeedListView;
-    private AbianReaderItemView m_rssItemView;
 
     private ImageView m_refreshImageView;
     private ImageView m_headerImageView;
@@ -178,8 +166,8 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
                     {
                         m_splashScreenView.setVisibility(View.GONE);
                         m_mainAppView.setVisibility(View.VISIBLE);
-    
-                        showMainListView();
+
+                        updateListView();
                     }
                 }
             };
@@ -202,7 +190,6 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
 
         m_splashScreenView = (ImageView)findViewById(R.id.app_splash_screen_layout);
         m_mainAppView = (LinearLayout)findViewById(R.id.app_main_layout);
-        m_rssItemView = (AbianReaderItemView)findViewById(R.id.abian_reader_item_view);
         m_rssFeedListView = (AbianReaderListView)findViewById(R.id.abian_reader_list_view);
 
         LinearLayout appHeaderLinearLayout = (LinearLayout)findViewById(R.id.app_header_linear_layout);
@@ -218,7 +205,6 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
         m_headerImageView.setOnClickListener(this);
         m_settingsImageView.setOnClickListener(this);
 
-        m_rssItemView.initializeViewAfterPopulation(this);
         m_rssFeedListView.initializeViewAfterPopulation(this);
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -293,13 +279,13 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
                 String feedUrl = s_singleton.getString(R.string.feed_url_str);
 
                 if(feedUrl.contains("?"))
-                    {
-                        feedUrl += "&";
-                    }
-                    else
-                    {
-                        feedUrl += "/?";
-                    }
+                {
+                    feedUrl += "&";
+                }
+                else
+                {
+                    feedUrl += "/?";
+                }
 
                 int requestedPageNumber = 1;
 
@@ -309,8 +295,8 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
                 {
                     requestedPageNumber = abianReaderAppData.getPageNumber();
                 }
-                
-                    feedUrl += "paged=" + requestedPageNumber;
+
+                feedUrl += "paged=" + requestedPageNumber;
 
                 m_refreshFeedTask.execute(feedUrl);
             }
@@ -323,26 +309,9 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
 
     public void showRssItemContent(int position)
     {
-        m_rssItemView.setTargetRssItem(position);
-        m_rssFeedListView.setVisibility(View.GONE);
-        m_rssItemView.setVisibility(View.VISIBLE);
-
-        m_refreshImageView.setImageResource(R.drawable.share);
-        m_settingsImageView.setImageResource(R.drawable.comments);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if((keyCode == KeyEvent.KEYCODE_BACK) && (event.getRepeatCount() == 0))
-        {
-            if(showMainListView())
-            {
-                return true;
-            }
-        }
-
-        return super.onKeyDown(keyCode, event);
+        Intent itemIntent = new Intent(this, AbianReaderItemActivity.class);
+        
+        startActivity(itemIntent);
     }
 
     private boolean isNetworkAvailable()
@@ -460,7 +429,7 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
                 Log.e(getClass().getName(), "There is no application data!!!");
                 return;
             }
-            
+
             int numberOfFetchedItems = m_stagingVector.size();
 
             boolean bIsFirstPage = (abianReaderAppData.getPageNumber() == 1);
@@ -774,54 +743,13 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
     {
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
-        if(abianReaderAppData == null)
-        {
-            Log.e(getClass().getName(), "Data is null!!!");
-            return;
-        }
-
         if(v.getId() == R.id.refresh_button)
         {
-            if(m_rssItemView.getVisibility() == View.VISIBLE)
-            {
-                int itemPosition = m_rssItemView.getTargetRssItem();
+            abianReaderAppData.clear();
+            abianReaderAppData.setPageNumber(1);
+            updateListView();
 
-                AbianReaderItem targetItem = abianReaderAppData.getItemNumber(itemPosition);
-
-                if(targetItem != null)
-                {
-                    String shareMessage = getString(R.string.share_message);
-                    String shareTitle = getString(R.string.share_title);
-
-                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
-                    sharingIntent.setType("text/plain");
-                    sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareMessage);
-                    sharingIntent.putExtra(Intent.EXTRA_TEXT, targetItem.getLink());
-                    startActivity(Intent.createChooser(sharingIntent, shareTitle));
-                }
-            }
-            else
-            {   
-                abianReaderAppData.clear();
-                abianReaderAppData.setPageNumber(1);
-                updateListView();
-
-                refreshFeed();
-            }
-        }
-        else if(v.getId() == R.id.settings_button)
-        {
-            if(m_rssItemView.getVisibility() == View.VISIBLE)
-            {
-                int itemPosition = m_rssItemView.getTargetRssItem();
-
-                AbianReaderItem targetItem = abianReaderAppData.getItemNumber(itemPosition);
-
-                if(targetItem != null)
-                {
-                    AbianReaderActivity.openUrlInBrowser(targetItem.getCommentsLink());
-                }
-            }
+            refreshFeed();
         }
     }
 
@@ -859,25 +787,6 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
         }
 
         return retVal;
-    }
-
-    private boolean showMainListView()
-    {
-        if(m_rssItemView.getVisibility() == View.VISIBLE)
-        {
-            m_rssItemView.clearWebView();
-            m_rssItemView.setVisibility(View.GONE);
-            m_rssFeedListView.setVisibility(View.VISIBLE);
-
-            m_refreshImageView.setImageResource(R.drawable.refresh);
-            m_settingsImageView.setImageResource(R.drawable.settings);
-
-            updateListView();
-
-            return true;
-        }
-
-        return false;
     }
 
     @Override
@@ -936,11 +845,11 @@ public class AbianReaderActivity extends FragmentActivity implements OnClickList
         m_readUrlArrayList.clear();
 
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        Map<String,?> prefMap = preferences.getAll();
-        
+        Map<String, ?> prefMap = preferences.getAll();
+
         Set<String> mapKeys = prefMap.keySet();
 
-        for(String thisKey : mapKeys)
+        for(String thisKey: mapKeys)
         {
             if(prefMap.get(thisKey) instanceof String)
             {

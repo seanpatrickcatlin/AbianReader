@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -501,6 +502,20 @@ public class AbianReaderData
         public void setArticleHasBeenRead()
         {
             m_bHasBeenRead = true;
+        }
+
+        public void shareItem()
+        {
+            AbianReaderApplication theSingleton = AbianReaderApplication.getInstance(); 
+            
+            String shareMessage = theSingleton.getString(R.string.share_message);
+            String shareTitle = theSingleton.getString(R.string.share_title);
+
+            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareMessage);
+            sharingIntent.putExtra(Intent.EXTRA_TEXT,getLink());
+            theSingleton.startActivity(Intent.createChooser(sharingIntent, shareTitle));
         }
     }
 

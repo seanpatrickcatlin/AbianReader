@@ -24,7 +24,6 @@ import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.SimpleHtmlSerializer;
 import org.htmlcleaner.TagNode;
 
-import com.abiansoftware.lib.reader.R;
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 
 import android.content.Context;
@@ -70,9 +69,10 @@ class AbianReaderItemView extends LinearLayout
         m_htmlSerializer = new SimpleHtmlSerializer(m_cleanerProps);
     }
 
-    public void initializeViewAfterPopulation(Context context)
+    public void setWebView(WebView theWebView)
     {
-        m_webView = (WebView)AbianReaderActivity.GetSingleton().findViewById(R.id.abian_reader_item_view_webview);
+        m_webView = theWebView; 
+
         m_webView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
         // m_webView.getSettings().setJavaScriptEnabled(true);
         m_webView.getSettings().setPluginState(PluginState.ON_DEMAND);
@@ -97,12 +97,6 @@ class AbianReaderItemView extends LinearLayout
         m_targetRssItemNumber = itemPosition;
 
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-
-        if(abianReaderAppData == null)
-        {
-            Log.e(getClass().getName(), "Data is null!!!");
-            return;
-        }
 
         AbianReaderItem theItem = abianReaderAppData.getItemNumber(itemPosition);
 
