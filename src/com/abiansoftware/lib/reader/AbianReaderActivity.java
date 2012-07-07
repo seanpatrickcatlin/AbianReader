@@ -18,15 +18,11 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 /*
  TODO List
  Long Term Goals
- - Use shapes for feature count, not text
  - View Comments in App - Possible, I think this is in the JSON
  - Swipe between Articles when reading one - Possible, just takes time
  - Have multiple lists that you can swipe between, "Latest", "Features", "Android", etc...
- - Feature Slider, Coverflow style - Possible, just takes time
  - Add a search feature - Possible, just takes time
  - Leave comments in App, Can't Happen Right now... I think
-
- 
  */
 
 package com.abiansoftware.lib.reader;
@@ -44,7 +40,6 @@ import java.util.Vector;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.http.client.params.ClientPNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.xml.sax.Attributes;
@@ -56,7 +51,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -68,6 +62,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -80,9 +75,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.abiansoftware.lib.reader.R;
-import com.loopj.android.http.*;
 
-public class AbianReaderActivity extends Activity implements OnClickListener
+public class AbianReaderActivity extends FragmentActivity implements OnClickListener
 {
     private static final String TAG = "AbianReaderActivity";
     private static final String RSS_ITEM = "item";
@@ -119,7 +113,6 @@ public class AbianReaderActivity extends Activity implements OnClickListener
 
     private static AbianReaderActivity s_singleton = null;
 
-    private AbianReaderData m_abianReaderData;
     private RefreshFeedTask m_refreshFeedTask;
 
     private AbianReaderListView m_rssFeedListView;
@@ -138,9 +131,7 @@ public class AbianReaderActivity extends Activity implements OnClickListener
     private boolean m_bNoMoreItemsToFetch;
     private boolean m_bLastConnectionHadError;
 
-    private static AsyncHttpClient s_asyncHttpClient;
-
-    private Handler m_appHandler;
+    private static Handler s_appHandler = null;
 
     private Vector<AbianReaderItem> m_stagingVector;
 
@@ -148,16 +139,6 @@ public class AbianReaderActivity extends Activity implements OnClickListener
     private LinearLayout m_mainAppView;
 
     private ArrayList<String> m_readUrlArrayList;
-
-    public static void DoHttpGet(String url, RequestParams params, AsyncHttpResponseHandler responseHandler)
-    {
-        s_asyncHttpClient.get(url, params, responseHandler);
-    }
-
-    public static void DoHttpBinaryGet(String url, BinaryHttpResponseHandler responseHandler)
-    {
-        s_asyncHttpClient.get(url, responseHandler);
-    }
 
     public static String GetFeaturedTag()
     {
@@ -170,12 +151,8 @@ public class AbianReaderActivity extends Activity implements OnClickListener
     {
         super.onCreate(savedInstanceState);
 
-        s_asyncHttpClient = new AsyncHttpClient();
-        s_asyncHttpClient.getHttpClient().getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
-
         m_refreshFeedTask = null;
         m_stagingVector = new Vector<AbianReaderItem>();
-        m_abianReaderData = new AbianReaderData();
 
         m_bNoMoreItemsToFetch = false;
         m_bLastConnectionHadError = false;
@@ -186,24 +163,27 @@ public class AbianReaderActivity extends Activity implements OnClickListener
 
         s_singleton = this;
 
-        m_appHandler = new Handler()
+        if(s_appHandler == null)
         {
-            @Override
-            public void handleMessage(Message msg)
+            s_appHandler = new Handler()
             {
-                if(msg.what == MSG_UPDATE_LIST)
+                @Override
+                public void handleMessage(Message msg)
                 {
-                    updateListView();
+                    if(msg.what == MSG_UPDATE_LIST)
+                    {
+                        updateListView();
+                    }
+                    else if(msg.what == MSG_HIDE_SPLASH_SCREEN)
+                    {
+                        m_splashScreenView.setVisibility(View.GONE);
+                        m_mainAppView.setVisibility(View.VISIBLE);
+    
+                        showMainListView();
+                    }
                 }
-                else if(msg.what == MSG_HIDE_SPLASH_SCREEN)
-                {
-                    m_splashScreenView.setVisibility(View.GONE);
-                    m_mainAppView.setVisibility(View.VISIBLE);
-
-                    showMainListView();
-                }
-            }
-        };
+            };
+        }
 
         s_featuredTag = getString(R.string.featured_tag);
 
@@ -251,13 +231,18 @@ public class AbianReaderActivity extends Activity implements OnClickListener
         m_mainAppView.setVisibility(View.GONE);
         m_splashScreenView.setVisibility(View.VISIBLE);
 
-        m_appHandler.sendEmptyMessageDelayed(MSG_HIDE_SPLASH_SCREEN, 2000);
-
+        if(AbianReaderActivity.s_appHandler != null)
+        {
+            AbianReaderActivity.s_appHandler.sendEmptyMessageDelayed(MSG_HIDE_SPLASH_SCREEN, 2000);
+        }
     }
 
     static public void UpdateListPlease()
     {
-        s_singleton.m_appHandler.sendEmptyMessage(MSG_UPDATE_LIST);
+        if(AbianReaderActivity.s_appHandler != null)
+        {
+            AbianReaderActivity.s_appHandler.sendEmptyMessage(MSG_UPDATE_LIST);
+        }
     }
 
     static public boolean GetTryJson()
@@ -270,26 +255,9 @@ public class AbianReaderActivity extends Activity implements OnClickListener
         return s_singleton;
     }
 
-    static public AbianReaderData GetData()
-    {
-        if(s_singleton != null)
-        {
-            return s_singleton.getReaderData();
-        }
-        else
-        {
-            return null;
-        }
-    }
-
     public int getPreferredListItemHeight()
     {
         return m_preferredListItemHeight;
-    }
-
-    public AbianReaderData getReaderData()
-    {
-        return m_abianReaderData;
     }
 
     public boolean isRefreshingFeed()
@@ -304,7 +272,13 @@ public class AbianReaderActivity extends Activity implements OnClickListener
 
     public void getMoreFeed()
     {
-        m_abianReaderData.setPageNumber(m_abianReaderData.getPageNumber() + 1);
+        AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
+
+        if(abianReaderAppData != null)
+        {
+            abianReaderAppData.setPageNumber(abianReaderAppData.getPageNumber() + 1);
+        }
+
         refreshFeed();
     }
 
@@ -318,14 +292,7 @@ public class AbianReaderActivity extends Activity implements OnClickListener
 
                 String feedUrl = s_singleton.getString(R.string.feed_url_str);
 
-                if(s_bTryJson && s_bUseJsonContent)
-                {
-                    feedUrl = s_singleton.getString(R.string.site_url_str);
-                    feedUrl += "/?json=1&count=" + m_abianReaderData.getNumberOfItems() + "&page=" + m_abianReaderData.getPageNumber();
-                }
-                else
-                {
-                    if(feedUrl.contains("?"))
+                if(feedUrl.contains("?"))
                     {
                         feedUrl += "&";
                     }
@@ -334,8 +301,16 @@ public class AbianReaderActivity extends Activity implements OnClickListener
                         feedUrl += "/?";
                     }
 
-                    feedUrl += "paged=" + m_abianReaderData.getPageNumber();
+                int requestedPageNumber = 1;
+
+                AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
+
+                if(abianReaderAppData != null)
+                {
+                    requestedPageNumber = abianReaderAppData.getPageNumber();
                 }
+                
+                    feedUrl += "paged=" + requestedPageNumber;
 
                 m_refreshFeedTask.execute(feedUrl);
             }
@@ -478,9 +453,17 @@ public class AbianReaderActivity extends Activity implements OnClickListener
         @Override
         protected void onPostExecute(Void param)
         {
+            AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
+
+            if(abianReaderAppData == null)
+            {
+                Log.e(getClass().getName(), "There is no application data!!!");
+                return;
+            }
+            
             int numberOfFetchedItems = m_stagingVector.size();
 
-            boolean bIsFirstPage = (m_abianReaderData.getPageNumber() == 1);
+            boolean bIsFirstPage = (abianReaderAppData.getPageNumber() == 1);
 
             if(bIsFirstPage)
             {
@@ -503,7 +486,7 @@ public class AbianReaderActivity extends Activity implements OnClickListener
                     }
                 }
 
-                m_abianReaderData.addItem(thisItem);
+                abianReaderAppData.addItem(thisItem);
                 updateListView();
 
                 if(s_bTryJson)
@@ -789,13 +772,21 @@ public class AbianReaderActivity extends Activity implements OnClickListener
     @Override
     public void onClick(View v)
     {
+        AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
+
+        if(abianReaderAppData == null)
+        {
+            Log.e(getClass().getName(), "Data is null!!!");
+            return;
+        }
+
         if(v.getId() == R.id.refresh_button)
         {
             if(m_rssItemView.getVisibility() == View.VISIBLE)
             {
                 int itemPosition = m_rssItemView.getTargetRssItem();
 
-                AbianReaderItem targetItem = m_abianReaderData.getItemNumber(itemPosition);
+                AbianReaderItem targetItem = abianReaderAppData.getItemNumber(itemPosition);
 
                 if(targetItem != null)
                 {
@@ -810,17 +801,13 @@ public class AbianReaderActivity extends Activity implements OnClickListener
                 }
             }
             else
-            {
-                m_abianReaderData.clear();
-                m_abianReaderData.setPageNumber(1);
+            {   
+                abianReaderAppData.clear();
+                abianReaderAppData.setPageNumber(1);
                 updateListView();
 
                 refreshFeed();
             }
-        }
-        else if(v.getId() == R.id.header_button)
-        {
-            AbianReaderActivity.openUrlInBrowser(getString(R.string.site_url_str));
         }
         else if(v.getId() == R.id.settings_button)
         {
@@ -828,17 +815,12 @@ public class AbianReaderActivity extends Activity implements OnClickListener
             {
                 int itemPosition = m_rssItemView.getTargetRssItem();
 
-                AbianReaderItem targetItem = m_abianReaderData.getItemNumber(itemPosition);
+                AbianReaderItem targetItem = abianReaderAppData.getItemNumber(itemPosition);
 
                 if(targetItem != null)
                 {
                     AbianReaderActivity.openUrlInBrowser(targetItem.getCommentsLink());
                 }
-            }
-            else
-            {
-                // TODO: Create a settings view
-                Toast.makeText(s_singleton, "Settings coming soon...", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -901,6 +883,13 @@ public class AbianReaderActivity extends Activity implements OnClickListener
     @Override
     protected void onPause()
     {
+        AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
+
+        if(abianReaderAppData == null)
+        {
+            Log.e(getClass().getName(), "Data is null!!!");
+            return;
+        }
 
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         Editor theEditor = preferences.edit();
@@ -913,9 +902,9 @@ public class AbianReaderActivity extends Activity implements OnClickListener
 
         m_readUrlArrayList.clear();
 
-        for(int i = 0; i < m_abianReaderData.getNumberOfItems(); i++)
+        for(int i = 0; i < abianReaderAppData.getNumberOfItems(); i++)
         {
-            AbianReaderItem thisItem = m_abianReaderData.getItemNumber(i);
+            AbianReaderItem thisItem = abianReaderAppData.getItemNumber(i);
 
             if(thisItem.getHasArticleBeenRead())
             {

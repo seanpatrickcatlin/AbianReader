@@ -265,7 +265,7 @@ public class AbianReaderData
 
                 m_bIsGettingThumbnail = true;
 
-                AbianReaderActivity.DoHttpBinaryGet(thumbnailLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                AbianReaderApplication.DoHttpBinaryGet(thumbnailLink, new BinaryHttpResponseHandler(allowedContentTypes)
                 {
                     @Override
                     public void onSuccess(byte[] fileData)
@@ -322,7 +322,7 @@ public class AbianReaderData
 
                 m_bIsGettingFeatureImage = true;
 
-                AbianReaderActivity.DoHttpBinaryGet(featuredImageLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                AbianReaderApplication.DoHttpBinaryGet(featuredImageLink, new BinaryHttpResponseHandler(allowedContentTypes)
                 {
                     @Override
                     public void onSuccess(byte[] fileData)
@@ -416,7 +416,7 @@ public class AbianReaderData
                 extraJsonDataUrl += ",tags";
             }
 
-            AbianReaderActivity.DoHttpGet(extraJsonDataUrl, null, new AsyncHttpResponseHandler()
+            AbianReaderApplication.DoHttpGet(extraJsonDataUrl, null, new AsyncHttpResponseHandler()
             {
                 @Override
                 public void onSuccess(String response)
@@ -508,7 +508,6 @@ public class AbianReaderData
     private Time m_lastUpdateTime;
     private int m_pageNumber;
     private int m_autoUpdateTimeInMinutes;
-    private int m_currentFeaturePosition;
 
     public AbianReaderData()
     {
@@ -518,7 +517,6 @@ public class AbianReaderData
         m_lastUpdateTime.set(0);
         m_pageNumber = 1;
         m_autoUpdateTimeInMinutes = 0;
-        m_currentFeaturePosition = -1;
     }
 
     public void addItem(AbianReaderItem newItem)
@@ -545,7 +543,6 @@ public class AbianReaderData
     {
         m_itemVector.clear();
         m_lastUpdateTime.set(0);
-        m_currentFeaturePosition = -1;
     }
 
     public void setLastUpdateTimeToNow()
@@ -608,7 +605,7 @@ public class AbianReaderData
         return retVal;
     }
 
-    private int getFeaturedArticlePosition(int featuredArticleNumber)
+    public int getFeaturedArticlePosition(int featuredArticleNumber)
     {
         int featuredArticleCount = 0;
 
@@ -628,92 +625,18 @@ public class AbianReaderData
         return 0;
     }
 
-    public AbianReaderItem getFeaturedItem()
+    public AbianReaderItem getFeaturedItem(int itemNumber)
     {
         if(getNumberedOfFeaturedArticles() <= 0)
         {
             return null;
         }
 
-        if(m_currentFeaturePosition == -1)
+        if((itemNumber < 0) || (itemNumber >= getNumberedOfFeaturedArticles()))
         {
-            m_currentFeaturePosition = 0;
+            itemNumber = 0;
         }
 
-        return getItemNumber(getFeaturedArticlePosition(m_currentFeaturePosition));
-    }
-
-    public int getFeaturedItemPositionInFeaturedList()
-    {
-        if(getNumberedOfFeaturedArticles() <= 0)
-        {
-            return 0;
-        }
-
-        if(m_currentFeaturePosition == -1)
-        {
-            m_currentFeaturePosition = 0;
-        }
-
-        return(m_currentFeaturePosition + 1);
-    }
-
-    public int getFeaturedItemPositionInCompleteList()
-    {
-        if(getNumberedOfFeaturedArticles() <= 0)
-        {
-            return 0;
-        }
-
-        if(m_currentFeaturePosition == -1)
-        {
-            m_currentFeaturePosition = 0;
-        }
-
-        return getFeaturedArticlePosition(m_currentFeaturePosition);
-    }
-
-    public void nextFeaturedArticle()
-    {
-        if(getNumberedOfFeaturedArticles() <= 0)
-        {
-            return;
-        }
-
-        if(m_currentFeaturePosition == -1)
-        {
-            m_currentFeaturePosition = 0;
-        }
-        else
-        {
-            m_currentFeaturePosition++;
-        }
-
-        if(m_currentFeaturePosition >= getNumberedOfFeaturedArticles())
-        {
-            m_currentFeaturePosition = 0;
-        }
-    }
-
-    public void previousFeaturedArticle()
-    {
-        if(getNumberedOfFeaturedArticles() <= 0)
-        {
-            return;
-        }
-
-        if(m_currentFeaturePosition == -1)
-        {
-            m_currentFeaturePosition = 0;
-        }
-        else
-        {
-            m_currentFeaturePosition--;
-        }
-
-        if(m_currentFeaturePosition < 0)
-        {
-            m_currentFeaturePosition = (getNumberedOfFeaturedArticles() - 1);
-        }
+        return getItemNumber(getFeaturedArticlePosition(itemNumber));
     }
 }

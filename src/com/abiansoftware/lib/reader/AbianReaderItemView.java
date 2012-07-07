@@ -96,117 +96,116 @@ class AbianReaderItemView extends LinearLayout
     {
         m_targetRssItemNumber = itemPosition;
 
-        AbianReaderData theData = AbianReaderActivity.GetData();
+        AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
-        if(theData != null)
+        if(abianReaderAppData == null)
         {
-            AbianReaderItem theItem = theData.getItemNumber(itemPosition);
+            Log.e(getClass().getName(), "Data is null!!!");
+            return;
+        }
 
-            if(theItem != null)
+        AbianReaderItem theItem = abianReaderAppData.getItemNumber(itemPosition);
+
+        if(theItem != null)
+        {
+            theItem.setArticleHasBeenRead();
+
+            int nWid = AbianReaderActivity.s_width;
+            int nHei = AbianReaderActivity.s_height;
+
+            float thisScale = m_webView.getScale();
+
+            float nScaledWid = (nWid / thisScale);
+            float nScaledHei = (nHei / thisScale);
+
+            float nMaxWid = (nScaledWid * 0.9f);
+            float nMaxHei = (nScaledHei * 0.9f);
+
+            if(nWid > nHei)
             {
-                theItem.setArticleHasBeenRead();
-
-                int nWid = AbianReaderActivity.s_width;
-                int nHei = AbianReaderActivity.s_height;
-
-                float thisScale = m_webView.getScale();
-
-                float nScaledWid = (nWid / thisScale);
-                float nScaledHei = (nHei / thisScale);
-
-                float nMaxWid = (nScaledWid * 0.9f);
-                float nMaxHei = (nScaledHei * 0.9f);
-
-                if(nWid > nHei)
-                {
-                    nMaxHei = (nScaledHei * 0.75f);
-                }
-
-                String maxWidStr = Integer.toString((int)nMaxWid);
-                String maxHeiStr = Integer.toString((int)nMaxHei);
-
-                String constraints = "{ ";
-                constraints += "max-width: " + maxWidStr + "; ";
-                constraints += "max-height: " + maxHeiStr + "; ";
-                constraints += "width: auto; ";
-                constraints += "height: auto; ";
-                constraints += "display: block; ";
-                constraints += "margin-left: auto; ";
-                constraints += "margin-right: auto; ";
-                constraints += "}";
-
-                String ourHeadNode = "<head>";
-                // use this to tell webview not to scale the webpage
-                // ourHeadNode +=
-                // "<meta name=\"viewport\" content=\"target-densitydpi=device-dpi\" />";
-                ourHeadNode += "<style>";
-                ourHeadNode += "img " + constraints;
-                ourHeadNode += "\niframe " + constraints;
-                ourHeadNode += "\ndiv " + constraints;
-                ourHeadNode += "</style>";
-                ourHeadNode += "</head>";
-
-                String ourHeader = "<html>" + ourHeadNode + "<body><h2>" + theItem.getTitle() + "</h2>";
-                ourHeader += "<small>By " + theItem.getCreator() + " posted " + theItem.getPubDate() + "</small>";
-
-                if(theItem.getFeaturedImageLink().length() != 0)
-                {
-                    ourHeader += "<br /><br />";
-                    ourHeader += "<a href=\"";
-                    ourHeader += theItem.getFeaturedImageLink();
-                    ourHeader += "\">";
-                    ourHeader += "<img src=\"";
-                    ourHeader += theItem.getFeaturedImageLink();
-                    ourHeader += "\" /> </a>";
-                }
-
-                // ourHeader += "<br />";
-
-                String ourFooter = "";
-                ourFooter += "<br /><a href=\"" + theItem.getLink() + "\" target=\"_blank\">Open the full article in your browser</a><br />";
-                ourFooter += "</body></html>";
-
-                String ourHtml = ourHeader + theItem.getContent() + ourFooter;
-
-                TagNode theCleanTagNode = m_htmlCleaner.clean(ourHtml);
-
-                TagNode imgNodes[] = theCleanTagNode.getElementsByName("img", true);
-
-                for(int i = 0; i < imgNodes.length; i++)
-                {
-                    imgNodes[i].removeAttribute("width");
-                    imgNodes[i].removeAttribute("height");
-                }
-
-                TagNode iFrameNodes[] = theCleanTagNode.getElementsByName("iframe", true);
-
-                for(int i = 0; i < iFrameNodes.length; i++)
-                {
-                    iFrameNodes[i].removeAttribute("width");
-                    iFrameNodes[i].removeAttribute("height");
-                }
-
-                try
-                {
-                    ourHtml = m_htmlSerializer.getAsString(theCleanTagNode);
-                }
-                catch(IOException e)
-                {
-                    e.printStackTrace();
-                }
-
-                m_webView.loadDataWithBaseURL(null, ourHtml, "text/html", "UTF-8", null);
-                // m_webView.loadDataWithBaseURL(theItem.getLink(), ourHtml,
-                // "text/html", "UTF-8", null);
+                nMaxHei = (nScaledHei * 0.75f);
             }
-            else
+
+            String maxWidStr = Integer.toString((int)nMaxWid);
+            String maxHeiStr = Integer.toString((int)nMaxHei);
+
+            String constraints = "{ ";
+            constraints += "max-width: " + maxWidStr + "; ";
+            constraints += "max-height: " + maxHeiStr + "; ";
+            constraints += "width: auto; ";
+            constraints += "height: auto; ";
+            constraints += "display: block; ";
+            constraints += "margin-left: auto; ";
+            constraints += "margin-right: auto; ";
+            constraints += "}";
+
+            String ourHeadNode = "<head>";
+            // use this to tell webview not to scale the webpage
+            // ourHeadNode +=
+            // "<meta name=\"viewport\" content=\"target-densitydpi=device-dpi\" />";
+            ourHeadNode += "<style>";
+            ourHeadNode += "img " + constraints;
+            ourHeadNode += "\niframe " + constraints;
+            ourHeadNode += "\ndiv " + constraints;
+            ourHeadNode += "</style>";
+            ourHeadNode += "</head>";
+
+            String ourHeader = "<html>" + ourHeadNode + "<body><h2>" + theItem.getTitle() + "</h2>";
+            ourHeader += "<small>By " + theItem.getCreator() + " posted " + theItem.getPubDate() + "</small>";
+
+            if(theItem.getFeaturedImageLink().length() != 0)
             {
-                Log.e(TAG, "TheItem is null");
+                ourHeader += "<br /><br />";
+                ourHeader += "<a href=\"";
+                ourHeader += theItem.getFeaturedImageLink();
+                ourHeader += "\">";
+                ourHeader += "<img src=\"";
+                ourHeader += theItem.getFeaturedImageLink();
+                ourHeader += "\" /> </a>";
             }
+
+            // ourHeader += "<br />";
+
+            String ourFooter = "";
+            ourFooter += "<br /><a href=\"" + theItem.getLink() + "\" target=\"_blank\">Open the full article in your browser</a><br />";
+            ourFooter += "</body></html>";
+
+            String ourHtml = ourHeader + theItem.getContent() + ourFooter;
+
+            TagNode theCleanTagNode = m_htmlCleaner.clean(ourHtml);
+
+            TagNode imgNodes[] = theCleanTagNode.getElementsByName("img", true);
+
+            for(int i = 0; i < imgNodes.length; i++)
+            {
+                imgNodes[i].removeAttribute("width");
+                imgNodes[i].removeAttribute("height");
+            }
+
+            TagNode iFrameNodes[] = theCleanTagNode.getElementsByName("iframe", true);
+
+            for(int i = 0; i < iFrameNodes.length; i++)
+            {
+                iFrameNodes[i].removeAttribute("width");
+                iFrameNodes[i].removeAttribute("height");
+            }
+
+            try
+            {
+                ourHtml = m_htmlSerializer.getAsString(theCleanTagNode);
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            m_webView.loadDataWithBaseURL(null, ourHtml, "text/html", "UTF-8", null);
+            // m_webView.loadDataWithBaseURL(theItem.getLink(), ourHtml,
+            // "text/html", "UTF-8", null);
         }
         else
         {
-            Log.e(TAG, "TheData is null");
+            Log.e(TAG, "TheItem is null");
         }
     }
 }

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/abian_reader_list_header_layout"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:background="#FF606060" >
 
     <ImageView
@@ -26,25 +26,6 @@
         android:layout_alignParentBottom="true"
         android:background="#80000000"
         android:padding="4dp"
-        android:textColor="#FFFFFFFF" />
-
-    <TextView
-        android:id="@+id/abian_reader_list_header_title_text_view"
-        android:layout_width="fill_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_alignParentTop="true"
-        android:background="#80000000"
-        android:gravity="center_horizontal"
-        android:textColor="#FFFFFFFF" />
-
-    <TextView
-        android:id="@+id/abian_reader_list_header_count_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="#00000000"
-        android:paddingRight="6dp"
         android:textColor="#FFFFFFFF" />
 
 </RelativeLayout>
