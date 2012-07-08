@@ -20,6 +20,7 @@ package com.abiansoftware.lib.reader;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.xml.parsers.SAXParser;
@@ -176,6 +177,11 @@ public class AbianReaderDataFetcher
 
                 if(abianReaderAppData != null)
                 {
+                    if(abianReaderAppData.getNumberOfItems() == 0)
+                    {
+                        abianReaderAppData.setPageNumber(1);
+                    }
+
                     requestedPageNumber = abianReaderAppData.getPageNumber();
                 }
 
@@ -282,21 +288,19 @@ public class AbianReaderDataFetcher
             {
                 AbianReaderItem thisItem = m_stagingVector.get(i);
 
-                // TODO 
-                // re integrate this code
-                /*
-                if(m_readUrlArrayList != null)
+                ArrayList<String> readUrlArrayList = AbianReaderApplication.getInstance().getReadUrlArrayList();
+
+                if(readUrlArrayList != null)
                 {
-                    for(int arrayListPosition = 0; arrayListPosition < m_readUrlArrayList.size(); arrayListPosition++)
+                    for(int arrayListPosition = 0; arrayListPosition < readUrlArrayList.size(); arrayListPosition++)
                     {
-                        if(m_readUrlArrayList.get(arrayListPosition).equalsIgnoreCase(thisItem.getLink()))
+                        if(readUrlArrayList.get(arrayListPosition).equalsIgnoreCase(thisItem.getLink()))
                         {
-                            thisItem.setArticleHasBeenRead();
+                            thisItem.setArticleHasBeenRead(false);
                             break;
                         }
                     }
                 }
-                */
 
                 abianReaderAppData.addItem(thisItem);
                 AbianReaderApplication.getInstance().sendDataUpdatedMessage();

@@ -17,4 +17,5 @@
     <string name="share_title">Share</string>
     <string name="featured_tag">featured</string>
     <string name="icon_description">Icon</string>
+    <string name="splash_screen_description">Splash Screen</string>
 </resources>

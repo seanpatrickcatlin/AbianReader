@@ -22,26 +22,44 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.viewpagerindicator.TitlePageIndicator;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.widget.Toast;
 
+@SuppressLint("HandlerLeak")
 public class AbianReaderItemActivity extends SherlockFragmentActivity
 {
     private static int SHARE_ITEM_ID = 22611;
-    
+
     private ViewPager m_itemViewPager;
     private TitlePageIndicator m_itemViewPageIndicator;
     private AbianReaderItemViewPagerAdapter m_itemViewPagerAdapter;
+
+    private Handler m_activityHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        m_activityHandler = new Handler()
+        {
+            @Override
+            public void handleMessage(Message msg)
+            {
+                if(msg.what == AbianReaderApplication.MSG_DATA_UPDATED)
+                {
+                    m_itemViewPagerAdapter.notifyDataSetChanged();
+                }
+            }
+        };
 
         int userChosenArticleNumber = 0;
 
@@ -107,7 +125,7 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         @Override
         public CharSequence getPageTitle(int position)
         {
-            return "" + (position+1) + " of " + getCount();
+            return "" + (position + 1) + " of " + getCount();
         }
     }
 
@@ -141,5 +159,29 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         refreshMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
         return true;
+    }
+
+    @Override
+    protected void onPause()
+    {
+        AbianReaderApplication.getInstance().unregisterHandler(m_activityHandler);
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        AbianReaderApplication.getInstance().registerHandler(m_activityHandler);
+
+        m_itemViewPagerAdapter.notifyDataSetChanged();
+
+        if(AbianReaderApplication.getData().getNumberOfItems() == 0)
+        {
+            // there are no articles, lets get out of here because we have nothing to show
+            finish();
+        }
+
+        super.onResume();
     }
 }

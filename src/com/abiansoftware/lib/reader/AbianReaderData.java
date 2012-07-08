@@ -41,7 +41,7 @@ public class AbianReaderData
     private static final String TAG = "AbianReaderData";
 
     public static final int MAX_DATA_ITEMS = 100;
-    
+
     private static Object SYNC_OBJ = new Object();
 
     static public class AbianReaderItem
@@ -332,7 +332,7 @@ public class AbianReaderData
                         {
                             Log.e(TAG, "WTF, file data is null");
                         }
-                        
+
                         synchronized(SYNC_OBJ)
                         {
                             m_featuredImageBitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
@@ -345,16 +345,20 @@ public class AbianReaderData
                         else
                         {
                             /*
-                            float desiredHeight = (AbianReaderActivity.GetSingleton().getPreferredListItemHeight() * AbianReaderApplication.FEATURED_IMAGE_SIZE);
-
-                            float scaleFactor = desiredHeight / m_featuredImageBitmap.getHeight();
-                            float desiredWidth = m_featuredImageBitmap.getWidth() * scaleFactor;
-
-                            synchronized(SYNC_OBJ)
-                            {
-                                m_featuredImageBitmap = Bitmap.createScaledBitmap(m_featuredImageBitmap, (int)desiredWidth, (int)desiredHeight, false);
-                            }
-                            */
+                             * float desiredHeight =
+                             * (AbianReaderActivity.GetSingleton
+                             * ().getPreferredListItemHeight() *
+                             * AbianReaderApplication.FEATURED_IMAGE_SIZE);
+                             * 
+                             * float scaleFactor = desiredHeight /
+                             * m_featuredImageBitmap.getHeight(); float
+                             * desiredWidth = m_featuredImageBitmap.getWidth() *
+                             * scaleFactor;
+                             * 
+                             * synchronized(SYNC_OBJ) { m_featuredImageBitmap =
+                             * Bitmap.createScaledBitmap(m_featuredImageBitmap,
+                             * (int)desiredWidth, (int)desiredHeight, false); }
+                             */
                         }
 
                         AbianReaderApplication.getInstance().sendDataUpdatedMessage();
@@ -501,22 +505,27 @@ public class AbianReaderData
             return m_bHasBeenRead;
         }
 
-        public void setArticleHasBeenRead()
+        public void setArticleHasBeenRead(boolean bSaveToDisk)
         {
             m_bHasBeenRead = true;
+
+            if(bSaveToDisk)
+            {
+                AbianReaderApplication.getInstance().saveReadUrlList();
+            }
         }
 
         public void shareItem()
         {
-            AbianReaderApplication theSingleton = AbianReaderApplication.getInstance(); 
-            
+            AbianReaderApplication theSingleton = AbianReaderApplication.getInstance();
+
             String shareMessage = theSingleton.getString(R.string.share_message);
             String shareTitle = theSingleton.getString(R.string.share_title);
 
             Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
             sharingIntent.setType("text/plain");
             sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareMessage);
-            sharingIntent.putExtra(Intent.EXTRA_TEXT,getLink());
+            sharingIntent.putExtra(Intent.EXTRA_TEXT, getLink());
             theSingleton.startActivity(Intent.createChooser(sharingIntent, shareTitle));
         }
     }

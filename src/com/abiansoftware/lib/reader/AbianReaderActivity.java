@@ -17,21 +17,13 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-
-import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
-
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -43,17 +35,13 @@ public class AbianReaderActivity extends SherlockFragmentActivity
 {
     // private static final String TAG = "AbianReaderActivity";
 
-    public static final int MSG_UPDATE_LIST = 22609;
-
     public static final int REFRESH_ITEM_ID = 22610;
-
-    private static final String KEY_READ_URL_LIST = "readUrlList";
 
     private AbianReaderListView m_rssFeedListView;
 
     private Handler m_activityHandler;
 
-    private ArrayList<String> m_readUrlArrayList;
+    private Dialog m_splashScreenDialog;
 
     /** Called when the activity is first created. */
     @SuppressLint("HandlerLeak")
@@ -62,20 +50,22 @@ public class AbianReaderActivity extends SherlockFragmentActivity
     {
         super.onCreate(savedInstanceState);
 
+        // set the view
+        setContentView(R.layout.abian_reader_activity);
+
+        m_splashScreenDialog = null;
+
         m_activityHandler = new Handler()
         {
             @Override
             public void handleMessage(Message msg)
             {
-                if(msg.what == MSG_UPDATE_LIST)
+                if(msg.what == AbianReaderApplication.MSG_DATA_UPDATED)
                 {
                     updateListView();
                 }
             }
         };
-
-        // set the view
-        setContentView(R.layout.abian_reader_activity);
 
         m_rssFeedListView = new AbianReaderListView();
 
@@ -91,6 +81,7 @@ public class AbianReaderActivity extends SherlockFragmentActivity
             }
         }
 
+        showSplashScreen();
     }
 
     public int getPreferredListItemHeight()
@@ -107,45 +98,6 @@ public class AbianReaderActivity extends SherlockFragmentActivity
     protected void onPause()
     {
         AbianReaderApplication.getInstance().unregisterHandler(m_activityHandler);
-        
-        AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-
-        if(abianReaderAppData == null)
-        {
-            Log.e(getClass().getName(), "Data is null!!!");
-            return;
-        }
-
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        Editor theEditor = preferences.edit();
-        theEditor.clear();
-
-        if(m_readUrlArrayList == null)
-        {
-            m_readUrlArrayList = new ArrayList<String>();
-        }
-
-        m_readUrlArrayList.clear();
-
-        for(int i = 0; i < abianReaderAppData.getNumberOfItems(); i++)
-        {
-            AbianReaderItem thisItem = abianReaderAppData.getItemNumber(i);
-
-            if(thisItem.getHasArticleBeenRead())
-            {
-                m_readUrlArrayList.add(thisItem.getLink());
-            }
-        }
-
-        if(m_readUrlArrayList.size() > 0)
-        {
-            for(int i = 0; i < m_readUrlArrayList.size(); i++)
-            {
-                theEditor.putString(m_readUrlArrayList.get(i), KEY_READ_URL_LIST);
-            }
-        }
-
-        theEditor.commit();
 
         super.onPause();
     }
@@ -154,31 +106,7 @@ public class AbianReaderActivity extends SherlockFragmentActivity
     protected void onResume()
     {
         AbianReaderApplication.getInstance().registerHandler(m_activityHandler);
-
-        if(m_readUrlArrayList == null)
-        {
-            m_readUrlArrayList = new ArrayList<String>();
-        }
-
-        m_readUrlArrayList.clear();
-
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        Map<String, ?> prefMap = preferences.getAll();
-
-        Set<String> mapKeys = prefMap.keySet();
-
-        for(String thisKey: mapKeys)
-        {
-            if(prefMap.get(thisKey) instanceof String)
-            {
-                String thisValue = (String)prefMap.get(thisKey);
-
-                if(thisValue.equalsIgnoreCase(KEY_READ_URL_LIST))
-                {
-                    m_readUrlArrayList.add(thisKey);
-                }
-            }
-        }
+        updateListView();
 
         super.onResume();
     }
@@ -214,12 +142,52 @@ public class AbianReaderActivity extends SherlockFragmentActivity
         {
             AbianReaderApplication.getData().clear();
             AbianReaderApplication.getData().setPageNumber(1);
-            
+
             AbianReaderApplication.getDataFetcher().refreshFeed();
-            
+
             return true;
         }
-        
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showSplashScreen()
+    {
+        if(m_splashScreenDialog != null)
+        {
+            dismissSplashScreen();
+        }
+
+        if(!AbianReaderApplication.getInstance().getSplashScreenHasBeenShown())
+        {
+            m_splashScreenDialog = new Dialog(this, R.style.SplashScreen);
+            m_splashScreenDialog.setContentView(R.layout.abian_reader_splash_screen_layout);
+            m_splashScreenDialog.setCancelable(false);
+            m_splashScreenDialog.show();
+
+            // Set Runnable to remove splash screen just in case
+            final Handler splashScreenHandler = new Handler();
+
+            splashScreenHandler.postDelayed(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    dismissSplashScreen();
+                }
+            }, 2500);
+
+        }
+    }
+
+    private void dismissSplashScreen()
+    {
+        if(m_splashScreenDialog != null)
+        {
+            m_splashScreenDialog.dismiss();
+            m_splashScreenDialog = null;
+
+            AbianReaderApplication.getInstance().setSplashScreenHasBeenShown();
+        }
     }
 }

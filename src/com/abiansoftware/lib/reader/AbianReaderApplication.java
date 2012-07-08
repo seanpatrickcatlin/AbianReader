@@ -30,10 +30,14 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.http.client.params.ClientPNames;
 
+import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
@@ -41,6 +45,8 @@ import com.loopj.android.http.RequestParams;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -48,6 +54,9 @@ import android.view.WindowManager;
 
 public class AbianReaderApplication extends Application
 {
+    private static final String READ_URL_PREFERENCES = "AbianReaderReadUrlList";
+    private static final String KEY_READ_URL_LIST = "readUrlList";
+    
     private static AsyncHttpClient s_asyncHttpClient = null;
     private static AbianReaderApplication s_singleton = null;
     private AbianReaderData m_data;
@@ -55,11 +64,17 @@ public class AbianReaderApplication extends Application
 
     public static final String CHOSEN_ARTICLE_NUMBER = "AbianReaderChosenArticleNumber";
     public static final float FEATURED_IMAGE_SIZE = 2.5f;
+    public static final int MSG_DATA_UPDATED = 22609;
+    
 
     public static int s_width = 100;
     public static int s_height = 100;
 
     private Vector<Handler> m_handlerVector;
+
+    private boolean m_bSplashScreenHasBeenShown;
+
+    private ArrayList<String> m_readUrlArrayList;
 
     @Override
     public void onCreate()
@@ -81,6 +96,12 @@ public class AbianReaderApplication extends Application
         s_height = theDisplayMetrics.heightPixels;
 
         m_handlerVector = new Vector<Handler>();
+
+        m_bSplashScreenHasBeenShown = false;
+
+        m_readUrlArrayList = null;
+
+        loadReadUrlList();
 
         super.onCreate();
     }
@@ -148,8 +169,85 @@ public class AbianReaderApplication extends Application
 
             if(thisHandler != null)
             {
-                thisHandler.sendEmptyMessage(AbianReaderActivity.MSG_UPDATE_LIST);
+                thisHandler.sendEmptyMessage(AbianReaderApplication.MSG_DATA_UPDATED);
             }
         }
+    }
+
+    public void setSplashScreenHasBeenShown()
+    {
+        m_bSplashScreenHasBeenShown = true;
+    }
+
+    public boolean getSplashScreenHasBeenShown()
+    {
+        return m_bSplashScreenHasBeenShown;
+    }
+
+    private void loadReadUrlList()
+    {
+        if(m_readUrlArrayList == null)
+        {
+            m_readUrlArrayList = new ArrayList<String>();
+        }
+
+        m_readUrlArrayList.clear();
+
+        SharedPreferences preferences = getSharedPreferences(READ_URL_PREFERENCES, MODE_PRIVATE);
+        Map<String, ?> prefMap = preferences.getAll();
+
+        Set<String> mapKeys = prefMap.keySet();
+
+        for(String thisKey: mapKeys)
+        {
+            if(prefMap.get(thisKey) instanceof String)
+            {
+                String thisValue = (String)prefMap.get(thisKey);
+
+                if(thisValue.equalsIgnoreCase(KEY_READ_URL_LIST))
+                {
+                    m_readUrlArrayList.add(thisKey);
+                }
+            }
+        }
+    }
+
+    public void saveReadUrlList()
+    {
+        SharedPreferences preferences = getSharedPreferences(READ_URL_PREFERENCES, MODE_PRIVATE);
+        Editor theEditor = preferences.edit();
+        theEditor.clear();
+
+        if(m_readUrlArrayList == null)
+        {
+            m_readUrlArrayList = new ArrayList<String>();
+        }
+
+        m_readUrlArrayList.clear();
+
+        for(int i = 0; i < m_data.getNumberOfItems(); i++)
+        {
+            AbianReaderItem thisItem = m_data.getItemNumber(i);
+
+            if(thisItem.getHasArticleBeenRead())
+            {
+                m_readUrlArrayList.add(thisItem.getLink());
+            }
+        }
+
+        if(m_readUrlArrayList.size() > 0)
+        {
+            for(int i = 0; i < m_readUrlArrayList.size(); i++)
+            {
+                theEditor.putString(m_readUrlArrayList.get(i), KEY_READ_URL_LIST);
+            }
+        }
+
+        theEditor.commit();
+    }
+
+    public ArrayList<String> getReadUrlArrayList()
+    {
+        return m_readUrlArrayList;
     }
 }
