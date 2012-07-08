@@ -18,6 +18,8 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 package com.abiansoftware.lib.reader;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import android.content.Intent;
@@ -26,9 +28,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.widget.Toast;
 
 public class AbianReaderItemActivity extends SherlockFragmentActivity
 {
+    private static int SHARE_ITEM_ID = 22611;
+    
     private ViewPager m_itemViewPager;
     private TitlePageIndicator m_itemViewPageIndicator;
     private AbianReaderItemViewPagerAdapter m_itemViewPagerAdapter;
@@ -102,7 +107,7 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         @Override
         public CharSequence getPageTitle(int position)
         {
-            return "  " + (position+1) + "  ";
+            return "" + (position+1) + " of " + getCount();
         }
     }
 
@@ -117,7 +122,24 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
 
             return true;
         }
+        else if(item.getItemId() == SHARE_ITEM_ID)
+        {
+            Toast newToast = Toast.makeText(getApplicationContext(), "Share Coming Soon", Toast.LENGTH_SHORT);
+            newToast.show();
+
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuItem refreshMenuItem = menu.add(Menu.NONE, SHARE_ITEM_ID, Menu.NONE, "Share");
+        refreshMenuItem.setIcon(R.drawable.share);
+        refreshMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+        return true;
     }
 }

@@ -33,6 +33,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import com.abiansoftware.lib.reader.R;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 
@@ -41,6 +44,8 @@ public class AbianReaderActivity extends SherlockFragmentActivity
     // private static final String TAG = "AbianReaderActivity";
 
     public static final int MSG_UPDATE_LIST = 22609;
+
+    public static final int REFRESH_ITEM_ID = 22610;
 
     private static final String KEY_READ_URL_LIST = "readUrlList";
 
@@ -192,8 +197,29 @@ public class AbianReaderActivity extends SherlockFragmentActivity
         }
     }
 
-    public void registerHandler(Handler newHandler)
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
     {
+        MenuItem refreshMenuItem = menu.add(Menu.NONE, AbianReaderActivity.REFRESH_ITEM_ID, Menu.NONE, "Refresh");
+        refreshMenuItem.setIcon(R.drawable.refresh);
+        refreshMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        if(item.getItemId() == REFRESH_ITEM_ID)
+        {
+            AbianReaderApplication.getData().clear();
+            AbianReaderApplication.getData().setPageNumber(1);
+            
+            AbianReaderApplication.getDataFetcher().refreshFeed();
+            
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
     }
 }
