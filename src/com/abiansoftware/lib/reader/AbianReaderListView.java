@@ -28,7 +28,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +50,7 @@ class AbianReaderListView
     private AbianReaderListAdapter m_abianReaderListAdapter;
 
     private RelativeLayout m_headerViewPagerLayout;
-    private ViewPager m_headerViewPager;
+    private UninterceptableViewPager m_headerViewPager;
     private AbianReaderListHeaderViewPagerAdapter m_headerViewPagerAdapter;
 
     private CirclePageIndicator m_pageIndicator;
@@ -76,7 +75,7 @@ class AbianReaderListView
 
         m_headerViewPagerLayout = (RelativeLayout)theLayoutInflater.inflate(R.layout.abian_reader_list_header_view_pager, null);
 
-        m_headerViewPager = (ViewPager)m_headerViewPagerLayout.findViewById(R.id.abian_reader_list_header_viewpager_view);
+        m_headerViewPager = (UninterceptableViewPager)m_headerViewPagerLayout.findViewById(R.id.abian_reader_list_header_viewpager_view);
         m_pageIndicator = (CirclePageIndicator)m_headerViewPagerLayout.findViewById(R.id.abian_reader_list_header_page_indicator);
 
         m_headerViewPagerAdapter = new AbianReaderListHeaderViewPagerAdapter(parentActivity.getSupportFragmentManager());
@@ -98,6 +97,10 @@ class AbianReaderListView
         // have to set the adapter after you add header/footer views
         m_abianReaderListAdapter = new AbianReaderListAdapter(parentActivity);
         m_abianReaderListView.setAdapter(m_abianReaderListAdapter);
+
+        m_headerViewPagerLayout.setVisibility(View.GONE);
+        m_headerViewPager.setVisibility(View.GONE);
+        m_pageIndicator.setVisibility(View.GONE);
     }
 
     public int getPreferredListItemHeight()
