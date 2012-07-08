@@ -17,12 +17,12 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
-
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
+import com.actionbarsherlock.app.SherlockFragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +33,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class AbianReaderListHeaderFragment extends Fragment implements OnClickListener
+public class AbianReaderListHeaderFragment extends SherlockFragment implements OnClickListener
 {
     private boolean m_bViewHasBeenCreated;
     private RelativeLayout m_headerView;
@@ -69,13 +69,13 @@ public class AbianReaderListHeaderFragment extends Fragment implements OnClickLi
                 updateContent();
             }
         };
-        
+
     }
 
     public void setFeaturedArticleNumber(int featuredArticleNumber)
     {
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-        
+
         if((featuredArticleNumber < 0) || (featuredArticleNumber > abianReaderAppData.getNumberedOfFeaturedArticles()))
         {
             featuredArticleNumber = 0;
@@ -101,7 +101,7 @@ public class AbianReaderListHeaderFragment extends Fragment implements OnClickLi
         m_headerTextView.setLayoutParams(headerTextLayoutParams);
 
         m_bViewHasBeenCreated = true;
-        
+
         updateContent();
 
         m_headerView.setOnClickListener(this);
@@ -114,12 +114,12 @@ public class AbianReaderListHeaderFragment extends Fragment implements OnClickLi
         if(!m_bViewHasBeenCreated)
         {
             Log.e("...", "View has not been created");
-            
+
             return;
         }
 
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-        
+
         if((m_featuredArticleNumber >= 0) && (m_featuredArticleNumber < abianReaderAppData.getNumberedOfFeaturedArticles()))
         {
             AbianReaderItem theItemData = abianReaderAppData.getFeaturedItem(m_featuredArticleNumber);
@@ -148,7 +148,7 @@ public class AbianReaderListHeaderFragment extends Fragment implements OnClickLi
             {
                 Log.e("...", "Item Data is null");
             }
-        }        
+        }
     }
 
     @Override
@@ -164,8 +164,12 @@ public class AbianReaderListHeaderFragment extends Fragment implements OnClickLi
     {
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
-        int articlePosition = abianReaderAppData.getFeaturedArticlePosition(m_featuredArticleNumber); 
+        int articlePosition = abianReaderAppData.getFeaturedArticlePosition(m_featuredArticleNumber);
 
-        AbianReaderActivity.GetSingleton().showRssItemContent(articlePosition);
+        Intent itemIntent = new Intent(m_headerView.getContext(), AbianReaderItemActivity.class);
+
+        itemIntent.putExtra(AbianReaderApplication.CHOSEN_ARTICLE_NUMBER, articlePosition);
+
+        startActivity(itemIntent);
     }
 }

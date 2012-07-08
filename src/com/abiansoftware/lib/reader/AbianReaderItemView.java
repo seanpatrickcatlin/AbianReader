@@ -104,8 +104,8 @@ class AbianReaderItemView extends LinearLayout
         {
             theItem.setArticleHasBeenRead();
 
-            int nWid = AbianReaderActivity.s_width;
-            int nHei = AbianReaderActivity.s_height;
+            int nWid = AbianReaderApplication.s_width;
+            int nHei = AbianReaderApplication.s_height;
 
             float thisScale = m_webView.getScale();
 

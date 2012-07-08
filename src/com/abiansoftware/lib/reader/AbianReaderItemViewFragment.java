@@ -17,14 +17,15 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
+import com.actionbarsherlock.app.SherlockFragment;
+
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 
-public class AbianReaderItemViewFragment extends Fragment
+public class AbianReaderItemViewFragment extends SherlockFragment
 {
     private AbianReaderItemView m_itemView;
     private int m_articleNumber;

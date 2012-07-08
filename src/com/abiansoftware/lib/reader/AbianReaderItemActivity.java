@@ -17,19 +17,20 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
-import com.viewpagerindicator.LinePageIndicator;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.viewpagerindicator.TitlePageIndicator;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 
-public class AbianReaderItemActivity extends FragmentActivity
+public class AbianReaderItemActivity extends SherlockFragmentActivity
 {
     private ViewPager m_itemViewPager;
-    private LinePageIndicator m_itemViewPageIndicator;
+    private TitlePageIndicator m_itemViewPageIndicator;
     private AbianReaderItemViewPagerAdapter m_itemViewPagerAdapter;
 
     @Override
@@ -37,14 +38,33 @@ public class AbianReaderItemActivity extends FragmentActivity
     {
         super.onCreate(savedInstanceState);
 
+        int userChosenArticleNumber = 0;
+
+        Intent callingIntent = getIntent();
+
+        if(callingIntent != null)
+        {
+            Bundle intentExtras = callingIntent.getExtras();
+
+            if(intentExtras != null)
+            {
+                userChosenArticleNumber = intentExtras.getInt(AbianReaderApplication.CHOSEN_ARTICLE_NUMBER, 0);
+            }
+        }
+
         setContentView(R.layout.abian_reader_item_activity);
 
         m_itemViewPager = (ViewPager)findViewById(R.id.abian_reader_item_view_pager);
-        m_itemViewPageIndicator = (LinePageIndicator)findViewById(R.id.abian_reader_item_view_pager_indicator);
+        m_itemViewPageIndicator = (TitlePageIndicator)findViewById(R.id.abian_reader_item_view_pager_indicator);
 
         m_itemViewPagerAdapter = new AbianReaderItemViewPagerAdapter(getSupportFragmentManager());
         m_itemViewPager.setAdapter(m_itemViewPagerAdapter);
         m_itemViewPageIndicator.setViewPager(m_itemViewPager);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setSubtitle("All Items");
+
+        m_itemViewPager.setCurrentItem(userChosenArticleNumber);
     }
 
     private class AbianReaderItemViewPagerAdapter extends FragmentPagerAdapter
@@ -78,5 +98,26 @@ public class AbianReaderItemActivity extends FragmentActivity
         {
             super.notifyDataSetChanged();
         }
+
+        @Override
+        public CharSequence getPageTitle(int position)
+        {
+            return "  " + (position+1) + "  ";
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item)
+    {
+        if(item.getItemId() == android.R.id.home)
+        {
+            Intent intent = new Intent(this, AbianReaderActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

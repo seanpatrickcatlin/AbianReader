@@ -41,7 +41,7 @@ public class AbianReaderData
     private static final String TAG = "AbianReaderData";
 
     public static final int MAX_DATA_ITEMS = 100;
-
+    
     private static Object SYNC_OBJ = new Object();
 
     static public class AbianReaderItem
@@ -281,7 +281,7 @@ public class AbianReaderData
                             Log.e(TAG, "AsyncHttp thumb bitmap decode failed");
                         }
 
-                        AbianReaderActivity.UpdateListPlease();
+                        AbianReaderApplication.getInstance().sendDataUpdatedMessage();
 
                         m_bIsGettingThumbnail = false;
                     }
@@ -344,7 +344,8 @@ public class AbianReaderData
                         }
                         else
                         {
-                            float desiredHeight = (AbianReaderActivity.GetSingleton().getPreferredListItemHeight() * 2.5f);
+                            /*
+                            float desiredHeight = (AbianReaderActivity.GetSingleton().getPreferredListItemHeight() * AbianReaderApplication.FEATURED_IMAGE_SIZE);
 
                             float scaleFactor = desiredHeight / m_featuredImageBitmap.getHeight();
                             float desiredWidth = m_featuredImageBitmap.getWidth() * scaleFactor;
@@ -353,9 +354,10 @@ public class AbianReaderData
                             {
                                 m_featuredImageBitmap = Bitmap.createScaledBitmap(m_featuredImageBitmap, (int)desiredWidth, (int)desiredHeight, false);
                             }
+                            */
                         }
 
-                        AbianReaderActivity.UpdateListPlease();
+                        AbianReaderApplication.getInstance().sendDataUpdatedMessage();
 
                         m_bIsGettingFeatureImage = false;
                     }
@@ -453,8 +455,8 @@ public class AbianReaderData
                                     }
                                     else
                                     {
-                                        int matchingCurrentFeature = AbianReaderActivity.GetNumberOfSameCharacters(thisPostThumbnailLink, thisFeatureImageLink);
-                                        int matchingThisFeature = AbianReaderActivity.GetNumberOfSameCharacters(thisPostThumbnailLink, thisUrl);
+                                        int matchingCurrentFeature = AbianReaderDataFetcher.GetNumberOfSameCharacters(thisPostThumbnailLink, thisFeatureImageLink);
+                                        int matchingThisFeature = AbianReaderDataFetcher.GetNumberOfSameCharacters(thisPostThumbnailLink, thisUrl);
 
                                         if(matchingThisFeature > matchingCurrentFeature)
                                         {
@@ -475,7 +477,7 @@ public class AbianReaderData
 
                                 String tagName = thisTag.getString("title");
 
-                                if(tagName.equalsIgnoreCase(AbianReaderActivity.GetFeaturedTag()))
+                                if(tagName.equalsIgnoreCase(AbianReaderDataFetcher.GetFeaturedTag()))
                                 {
                                     bThisPostIsFeatured = true;
                                     break;

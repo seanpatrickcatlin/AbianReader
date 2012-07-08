@@ -19,31 +19,33 @@ package com.abiansoftware.lib.reader;
 
 import java.util.Vector;
 
-import com.abiansoftware.lib.reader.R;
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 import com.viewpagerindicator.CirclePageIndicator;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-class AbianReaderListView extends LinearLayout
+class AbianReaderListView
 {
     private static final String TAG = "AbianReaderListView";
+
+    private int m_preferredListItemHeight;
 
     private ListView m_abianReaderListView;
     private AbianReaderListAdapter m_abianReaderListAdapter;
@@ -54,27 +56,10 @@ class AbianReaderListView extends LinearLayout
 
     private CirclePageIndicator m_pageIndicator;
 
-    public AbianReaderListView(Context context)
+    public AbianReaderListView()
     {
-        super(context);
+        m_preferredListItemHeight = -1;
 
-        initializeViewBeforePopulation(context);
-    }
-
-    public AbianReaderListView(Context context, AttributeSet attrs)
-    {
-        super(context, attrs);
-
-        initializeViewBeforePopulation(context);
-    }
-
-    public ViewPager getHeaderViewPager()
-    {
-        return m_headerViewPager;
-    }
-
-    private void initializeViewBeforePopulation(Context context)
-    {
         m_abianReaderListView = null;
         m_abianReaderListAdapter = null;
 
@@ -83,43 +68,41 @@ class AbianReaderListView extends LinearLayout
         m_headerViewPagerAdapter = null;
     }
 
-    public void initializeViewAfterPopulation(Context context)
+    public void initializeViewAfterPopulation(FragmentActivity parentActivity)
     {
-        AbianReaderActivity theSingleton = AbianReaderActivity.GetSingleton();
+        m_abianReaderListView = (ListView)parentActivity.findViewById(R.id.abian_reader_list_view_listview);
 
-        m_abianReaderListView = (ListView)theSingleton.findViewById(R.id.abian_reader_list_view_listview);
-
-        LayoutInflater theLayoutInflater = LayoutInflater.from(context);
+        LayoutInflater theLayoutInflater = LayoutInflater.from(parentActivity);
 
         m_headerViewPagerLayout = (RelativeLayout)theLayoutInflater.inflate(R.layout.abian_reader_list_header_view_pager, null);
 
         m_headerViewPager = (ViewPager)m_headerViewPagerLayout.findViewById(R.id.abian_reader_list_header_viewpager_view);
         m_pageIndicator = (CirclePageIndicator)m_headerViewPagerLayout.findViewById(R.id.abian_reader_list_header_page_indicator);
 
-        m_headerViewPagerAdapter = new AbianReaderListHeaderViewPagerAdapter(AbianReaderActivity.GetSingleton().getSupportFragmentManager());
+        m_headerViewPagerAdapter = new AbianReaderListHeaderViewPagerAdapter(parentActivity.getSupportFragmentManager());
         m_headerViewPager.setAdapter(m_headerViewPagerAdapter);
         m_pageIndicator.setViewPager(m_headerViewPager);
 
-        //m_pageIndicator.setPageColor(0xFFcbedcc);
+        // m_pageIndicator.setPageColor(0xFFcbedcc);
         m_pageIndicator.setFillColor(0xFF41c045);
         m_pageIndicator.setStrokeColor(0xFF41c045);
         m_pageIndicator.setSnap(true);
 
         ViewGroup.LayoutParams headerViewPagerLayoutParams = m_headerViewPager.getLayoutParams();
-        headerViewPagerLayoutParams.height = (int)(headerViewPagerLayoutParams.height * 2.0f);
+        m_preferredListItemHeight = headerViewPagerLayoutParams.height;
+        headerViewPagerLayoutParams.height = (int)(m_preferredListItemHeight * AbianReaderApplication.FEATURED_IMAGE_SIZE);
         m_headerViewPager.setLayoutParams(headerViewPagerLayoutParams);
 
         m_abianReaderListView.addHeaderView(m_headerViewPagerLayout);
 
         // have to set the adapter after you add header/footer views
-        m_abianReaderListAdapter = new AbianReaderListAdapter(context);
+        m_abianReaderListAdapter = new AbianReaderListAdapter(parentActivity);
         m_abianReaderListView.setAdapter(m_abianReaderListAdapter);
     }
 
-    @Override
-    public void setVisibility(int visibility)
+    public int getPreferredListItemHeight()
     {
-        super.setVisibility(visibility);
+        return m_preferredListItemHeight;
     }
 
     public void updateList()
@@ -173,10 +156,11 @@ class AbianReaderListView extends LinearLayout
         public int getCount()
         {
             AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-            
+            AbianReaderDataFetcher abianReaderAppDataFetcher = AbianReaderApplication.getDataFetcher();
+
             int countVal = abianReaderAppData.getNumberOfItems();
 
-            if((countVal < AbianReaderData.MAX_DATA_ITEMS) && (AbianReaderActivity.GetSingleton().getThereAreNoMoreItems() == false))
+            if((countVal < AbianReaderData.MAX_DATA_ITEMS) && (abianReaderAppDataFetcher.getThereAreNoMoreItems() == false))
             {
                 countVal++;
             }
@@ -220,11 +204,11 @@ class AbianReaderListView extends LinearLayout
 
             AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
+            AbianReaderDataFetcher abianReaderAppDataFetcher = AbianReaderApplication.getDataFetcher();
+
             if(position == abianReaderAppData.getNumberOfItems())
             {
-                AbianReaderActivity theSingleton = AbianReaderActivity.GetSingleton();
-
-                if(theSingleton.getLastConnectionHadError())
+                if(abianReaderAppDataFetcher.getLastConnectionHadError())
                 {
                     listItem.m_titleText.setVisibility(View.VISIBLE);
                     listItem.m_detailsText.setVisibility(View.VISIBLE);
@@ -249,9 +233,9 @@ class AbianReaderListView extends LinearLayout
 
                     listItem.m_targetIndex = -2;
 
-                    if(theSingleton.isRefreshingFeed() == false)
+                    if(abianReaderAppDataFetcher.isRefreshingFeed() == false)
                     {
-                        theSingleton.getMoreFeed();
+                        abianReaderAppDataFetcher.getMoreFeed();
                     }
                 }
             }
@@ -321,7 +305,12 @@ class AbianReaderListView extends LinearLayout
                 if(listItem.m_targetIndex == -1)
                 {
                     // this is a retry
-                    AbianReaderActivity.GetSingleton().refreshFeed();
+                    AbianReaderDataFetcher abianReaderAppDataFetcher = AbianReaderApplication.getDataFetcher();
+
+                    if(abianReaderAppDataFetcher != null)
+                    {
+                        abianReaderAppDataFetcher.refreshFeed();
+                    }
 
                     Log.e(TAG, "-1 List Item");
                 }
@@ -331,7 +320,11 @@ class AbianReaderListView extends LinearLayout
                 }
                 else
                 {
-                    AbianReaderActivity.GetSingleton().showRssItemContent(listItem.m_targetIndex);
+                    Intent itemIntent = new Intent(m_layoutInflater.getContext(), AbianReaderItemActivity.class);
+
+                    itemIntent.putExtra(AbianReaderApplication.CHOSEN_ARTICLE_NUMBER, listItem.m_targetIndex);
+
+                    m_layoutInflater.getContext().startActivity(itemIntent);
                 }
             }
         }
@@ -363,7 +356,7 @@ class AbianReaderListView extends LinearLayout
         public int getCount()
         {
             AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-            
+
             int currentCount = abianReaderAppData.getNumberedOfFeaturedArticles();
 
             return currentCount;
