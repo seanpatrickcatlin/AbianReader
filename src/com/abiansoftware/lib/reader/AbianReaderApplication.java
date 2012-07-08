@@ -18,8 +18,7 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 /*
  TODO List
  Short Term Goals
- - Add the refresh item to the main activity
- - add the share item to the item activity
+ - Cache images (thumbnails and feature image downloads)
 
  Long Term Goals
  - Have multiple lists that you can swipe between, "Latest", "Features", "Android", etc...

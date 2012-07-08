@@ -96,6 +96,13 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
 
         m_itemViewPager.setCurrentItem(userChosenArticleNumber);
 
+        AbianReaderItem currentItem = AbianReaderApplication.getData().getItemNumber(userChosenArticleNumber);
+
+        if(currentItem != null)
+        {
+            currentItem.setArticleHasBeenRead(true);
+        }
+
         m_itemViewPageListener = new AbianReaderItemPageListener();
         m_itemViewPageIndicator.setOnPageChangeListener(m_itemViewPageListener);
     }
@@ -209,6 +216,13 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         public void onPageSelected(int position)
         {
             m_currentPage = position;
+
+            AbianReaderItem currentItem = AbianReaderApplication.getData().getItemNumber(position);
+
+            if(currentItem != null)
+            {
+                currentItem.setArticleHasBeenRead(true);
+            }
         }
     }
 }

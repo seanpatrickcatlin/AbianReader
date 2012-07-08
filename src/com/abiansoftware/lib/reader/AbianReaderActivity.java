@@ -55,6 +55,8 @@ public class AbianReaderActivity extends SherlockFragmentActivity
 
         m_splashScreenDialog = null;
 
+        showSplashScreen();
+
         m_activityHandler = new Handler()
         {
             @Override
@@ -79,9 +81,7 @@ public class AbianReaderActivity extends SherlockFragmentActivity
             {
                 abianReaderAppDataFetcher.refreshFeed();
             }
-        }
-
-        showSplashScreen();
+        }        
     }
 
     public int getPreferredListItemHeight()

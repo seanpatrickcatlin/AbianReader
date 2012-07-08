@@ -102,8 +102,6 @@ class AbianReaderItemView extends LinearLayout
 
         if(theItem != null)
         {
-            theItem.setArticleHasBeenRead(true);
-
             int nWid = AbianReaderApplication.s_width;
             int nHei = AbianReaderApplication.s_height;
 
