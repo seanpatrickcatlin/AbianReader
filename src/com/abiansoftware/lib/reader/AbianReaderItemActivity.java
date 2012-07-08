@@ -17,6 +17,7 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
+import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -31,7 +32,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.widget.Toast;
+import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 
 @SuppressLint("HandlerLeak")
 public class AbianReaderItemActivity extends SherlockFragmentActivity
@@ -43,6 +44,10 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
     private AbianReaderItemViewPagerAdapter m_itemViewPagerAdapter;
 
     private Handler m_activityHandler;
+
+    private int m_currentPage;
+
+    private AbianReaderItemPageListener m_itemViewPageListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -75,6 +80,8 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
             }
         }
 
+        m_currentPage = userChosenArticleNumber;
+
         setContentView(R.layout.abian_reader_item_activity);
 
         m_itemViewPager = (ViewPager)findViewById(R.id.abian_reader_item_view_pager);
@@ -88,6 +95,9 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         getSupportActionBar().setSubtitle("All Items");
 
         m_itemViewPager.setCurrentItem(userChosenArticleNumber);
+
+        m_itemViewPageListener = new AbianReaderItemPageListener();
+        m_itemViewPageIndicator.setOnPageChangeListener(m_itemViewPageListener);
     }
 
     private class AbianReaderItemViewPagerAdapter extends FragmentPagerAdapter
@@ -142,8 +152,16 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
         }
         else if(item.getItemId() == SHARE_ITEM_ID)
         {
-            Toast newToast = Toast.makeText(getApplicationContext(), "Share Coming Soon", Toast.LENGTH_SHORT);
-            newToast.show();
+            String shareMessage = getString(R.string.share_message);
+            String shareTitle = getString(R.string.share_title);
+
+            AbianReaderItem targetItem = AbianReaderApplication.getData().getItemNumber(m_currentPage);
+
+            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareMessage);
+            sharingIntent.putExtra(Intent.EXTRA_TEXT, targetItem.getLink());
+            startActivity(Intent.createChooser(sharingIntent, shareTitle));
 
             return true;
         }
@@ -178,10 +196,19 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
 
         if(AbianReaderApplication.getData().getNumberOfItems() == 0)
         {
-            // there are no articles, lets get out of here because we have nothing to show
+            // there are no articles!!!
+            // lets get out of here because we have nothing to show
             finish();
         }
 
         super.onResume();
+    }
+
+    private class AbianReaderItemPageListener extends SimpleOnPageChangeListener
+    {
+        public void onPageSelected(int position)
+        {
+            m_currentPage = position;
+        }
     }
 }

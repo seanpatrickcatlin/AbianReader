@@ -97,7 +97,7 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
         m_headerProgressBar.setVisibility(View.GONE);
 
         ViewGroup.LayoutParams headerTextLayoutParams = m_headerTextView.getLayoutParams();
-        headerTextLayoutParams.height = ((headerTextLayoutParams.height * 2) / 4);
+        headerTextLayoutParams.height = ((headerTextLayoutParams.height * 3) / 4);
         m_headerTextView.setLayoutParams(headerTextLayoutParams);
 
         m_bViewHasBeenCreated = true;
