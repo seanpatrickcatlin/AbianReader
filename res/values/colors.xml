@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="list_background_color">#ffffff</color>
-    <color name="list_header_background_color">#000000</color>
+
+    <color name="list_background_color">#FFFFFF</color>
+    <color name="list_header_background_color">#606060</color>
+    <color name="list_item_unread_selected_color">#33B5E5</color>
+    <color name="list_item_read_selected_color">#0099cc</color>
+    <color name="list_item_unread_color">#FFFFFF</color>
+    <color name="list_item_read_color">#E0E0E0</color>
+
 </resources>

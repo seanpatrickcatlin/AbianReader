@@ -17,6 +17,8 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -262,37 +264,119 @@ public class AbianReaderData
 
             if(thumbnailLink.length() > 0)
             {
-                String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+                // check to see if this image has been cached already
+                File thumbnailFile = new File(getThumbnailImageCacheFilePath());
 
-                m_bIsGettingThumbnail = true;
-
-                AbianReaderApplication.DoHttpBinaryGet(thumbnailLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                if(thumbnailFile.exists())
                 {
-                    @Override
-                    public void onSuccess(byte[] fileData)
+                    loadThumbnailImageFromCache();
+                }
+                else
+                {
+                    String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+
+                    m_bIsGettingThumbnail = true;
+
+                    AbianReaderApplication.DoHttpBinaryGet(thumbnailLink, new BinaryHttpResponseHandler(allowedContentTypes)
                     {
-                        synchronized(SYNC_OBJ)
+                        @Override
+                        public void onSuccess(byte[] fileData)
                         {
-                            m_thumbnailBitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
+                            File thumbnailFile = new File(getThumbnailImageCacheFilePath());
+
+                            try
+                            {
+                                FileOutputStream thumbnailFileOutputStream = new FileOutputStream(thumbnailFile);
+                                thumbnailFileOutputStream.write(fileData);
+                                thumbnailFileOutputStream.flush();
+                                thumbnailFileOutputStream.close();
+
+                                loadThumbnailImageFromCache();
+                            }
+                            catch(Exception e)
+                            {
+                                Log.e(TAG, e.toString());
+                            }
+
+                            m_bIsGettingThumbnail = false;
                         }
 
-                        if(m_thumbnailBitmap == null)
+                        public void onFailure(Throwable e, byte[] imageData)
                         {
-                            Log.e(TAG, "AsyncHttp thumb bitmap decode failed");
+                            Log.e(TAG, "AsyncHttp failed thumb");
+
+                            m_bIsGettingThumbnail = false;
                         }
+                    });
+                }
+            }
+        }
 
-                        AbianReaderApplication.getInstance().sendDataUpdatedMessage();
+        private String getThumbnailImageCacheFilePath()
+        {
+            File appCacheDirectory = AbianReaderApplication.getInstance().getCacheDir();
 
-                        m_bIsGettingThumbnail = false;
-                    }
+            String thumbnailImageFileName = m_thumbnailLink.substring(m_thumbnailLink.lastIndexOf('/') + 1, m_thumbnailLink.length());
 
-                    public void onFailure(Throwable e, byte[] imageData)
-                    {
-                        Log.e(TAG, "AsyncHttp failed thumb");
+            String thumbnailImageFilePath = appCacheDirectory.getAbsolutePath() + '/' + thumbnailImageFileName;
 
-                        m_bIsGettingThumbnail = false;
-                    }
-                });
+            return thumbnailImageFilePath;
+        }
+
+        private String getFeatureImageCacheFilePath()
+        {
+            File appCacheDirectory = AbianReaderApplication.getInstance().getCacheDir();
+
+            String featureImageFileName = m_featuredImageLink.substring(m_featuredImageLink.lastIndexOf('/') + 1, m_featuredImageLink.length());
+
+            String featureImageFilePath = appCacheDirectory.getAbsolutePath() + '/' + featureImageFileName;
+
+            return featureImageFilePath;            
+        }
+
+        private void loadThumbnailImageFromCache()
+        {
+            File thumbnailImageFile = new File(getThumbnailImageCacheFilePath());
+
+            if(thumbnailImageFile.exists() && thumbnailImageFile.isFile())
+            {
+                synchronized(SYNC_OBJ)
+                {
+                    int imgWid = AbianReaderApplication.s_width/4;
+                    int imgHei = AbianReaderApplication.s_height/4;
+                    
+                    m_thumbnailBitmap = AbianReaderData.decodeSampledBitmapFromFile(thumbnailImageFile.getAbsolutePath(), imgWid, imgHei);
+                }
+
+                if(m_thumbnailBitmap == null)
+                {
+                    Log.e(TAG, "AsyncHttp thumb bitmap decode failed");
+                }
+
+                AbianReaderApplication.getInstance().sendDataUpdatedMessage();
+            }
+        }
+
+        private void loadFeaturedImageFromCache()
+        {
+            File featuredImageFile = new File(getFeatureImageCacheFilePath());
+
+            if(featuredImageFile.exists() && featuredImageFile.isFile())
+            {
+                synchronized(SYNC_OBJ)
+                {
+                    int imgWid = AbianReaderApplication.s_width;
+                    int imgHei = AbianReaderApplication.s_height/4;
+                    
+                    m_featuredImageBitmap = AbianReaderData.decodeSampledBitmapFromFile(featuredImageFile.getAbsolutePath(), imgWid, imgHei);
+                }
+
+                if(m_featuredImageBitmap == null)
+                {
+                    Log.e(TAG, "AsyncHttp featured bitmap decode failed, " + featuredImageFile.getAbsolutePath());
+                }
+
+                AbianReaderApplication.getInstance().sendDataUpdatedMessage();
             }
         }
 
@@ -319,60 +403,51 @@ public class AbianReaderData
 
             if((featuredImageLink.length() > 0) && m_bIsFeatured)
             {
-                String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+                // check to see if this image has been cached already
+                File featuredImageFile = new File(getFeatureImageCacheFilePath());
 
-                m_bIsGettingFeatureImage = true;
-
-                AbianReaderApplication.DoHttpBinaryGet(featuredImageLink, new BinaryHttpResponseHandler(allowedContentTypes)
+                if(featuredImageFile.exists())
                 {
-                    @Override
-                    public void onSuccess(byte[] fileData)
+                    loadFeaturedImageFromCache();
+                }
+                else
+                {
+                    String[] allowedContentTypes = new String[] { "image/png", "image/jpeg", "image/gif" };
+
+                    m_bIsGettingFeatureImage = true;
+
+                    AbianReaderApplication.DoHttpBinaryGet(featuredImageLink, new BinaryHttpResponseHandler(allowedContentTypes)
                     {
-                        if(fileData == null)
+                        @Override
+                        public void onSuccess(byte[] fileData)
                         {
-                            Log.e(TAG, "WTF, file data is null");
+                            File featureFile = new File(getFeatureImageCacheFilePath());
+
+                            try
+                            {
+                                FileOutputStream featureFileOutputStream = new FileOutputStream(featureFile);
+                                featureFileOutputStream.write(fileData);
+                                featureFileOutputStream.flush();
+                                featureFileOutputStream.close();
+
+                                loadFeaturedImageFromCache();
+                            }
+                            catch(Exception e)
+                            {
+                                Log.e(TAG, e.toString());
+                            }
+
+                            m_bIsGettingFeatureImage = false;
                         }
 
-                        synchronized(SYNC_OBJ)
+                        public void onFailure(Throwable e, byte[] imageData)
                         {
-                            m_featuredImageBitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
+                            Log.e(TAG, "AsyncHttp failed");
+
+                            m_bIsGettingFeatureImage = false;
                         }
-
-                        if(m_featuredImageBitmap == null)
-                        {
-                            Log.e(TAG, "AsyncHttp featured bitmap decode failed");
-                        }
-                        else
-                        {
-                            /*
-                             * float desiredHeight =
-                             * (AbianReaderActivity.GetSingleton
-                             * ().getPreferredListItemHeight() *
-                             * AbianReaderApplication.FEATURED_IMAGE_SIZE);
-                             * 
-                             * float scaleFactor = desiredHeight /
-                             * m_featuredImageBitmap.getHeight(); float
-                             * desiredWidth = m_featuredImageBitmap.getWidth() *
-                             * scaleFactor;
-                             * 
-                             * synchronized(SYNC_OBJ) { m_featuredImageBitmap =
-                             * Bitmap.createScaledBitmap(m_featuredImageBitmap,
-                             * (int)desiredWidth, (int)desiredHeight, false); }
-                             */
-                        }
-
-                        AbianReaderApplication.getInstance().sendDataUpdatedMessage();
-
-                        m_bIsGettingFeatureImage = false;
-                    }
-
-                    public void onFailure(Throwable e, byte[] imageData)
-                    {
-                        Log.e(TAG, "AsyncHttp failed");
-
-                        m_bIsGettingFeatureImage = false;
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -664,5 +739,42 @@ public class AbianReaderData
         }
 
         return getItemNumber(getFeaturedArticlePosition(itemNumber));
+    }
+
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
+    {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if(height > reqHeight || width > reqWidth)
+        {
+            if(width > height)
+            {
+                inSampleSize = Math.round((float)height / (float)reqHeight);
+            }
+            else
+            {
+                inSampleSize = Math.round((float)width / (float)reqWidth);
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromFile(String filePath, int reqWidth, int reqHeight)
+    {
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(filePath, options);
     }
 }

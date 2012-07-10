@@ -3,7 +3,7 @@
     android:id="@+id/abian_reader_list_header_layout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="#FF606060" >
+    android:background="@drawable/list_header" >
 
     <ImageView
         android:id="@+id/abian_reader_list_header_image_view"

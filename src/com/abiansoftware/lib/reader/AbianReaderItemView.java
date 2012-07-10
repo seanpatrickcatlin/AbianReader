@@ -26,6 +26,7 @@ import org.htmlcleaner.TagNode;
 
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -69,13 +70,15 @@ class AbianReaderItemView extends LinearLayout
         m_htmlSerializer = new SimpleHtmlSerializer(m_cleanerProps);
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     public void setWebView(WebView theWebView)
     {
-        m_webView = theWebView; 
+        m_webView = theWebView;
 
+        // m_webView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
         m_webView.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
-        // m_webView.getSettings().setJavaScriptEnabled(true);
-        m_webView.getSettings().setPluginState(PluginState.ON_DEMAND);
+        m_webView.getSettings().setJavaScriptEnabled(true);
+        m_webView.getSettings().setPluginState(PluginState.ON);
         // m_webView.getSettings().setLoadWithOverviewMode(true);
         // m_webView.getSettings().setUseWideViewPort(true);
         m_webView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
@@ -139,6 +142,7 @@ class AbianReaderItemView extends LinearLayout
             ourHeadNode += "img " + constraints;
             ourHeadNode += "\niframe " + constraints;
             ourHeadNode += "\ndiv " + constraints;
+            // ourHeadNode += "\npre " + constraints;
             ourHeadNode += "</style>";
             ourHeadNode += "</head>";
 
@@ -199,5 +203,10 @@ class AbianReaderItemView extends LinearLayout
         {
             Log.e(TAG, "TheItem is null");
         }
+    }
+
+    public void resetScrollPosition()
+    {
+        m_webView.scrollTo(0, m_webView.getScrollY());
     }
 }

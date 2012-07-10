@@ -255,6 +255,10 @@ class AbianReaderListView
                 {
                     convertView.setBackgroundResource(R.drawable.list_item_read);
                 }
+                else
+                {
+                    convertView.setBackgroundResource(R.drawable.list_item_unread);
+                }
 
                 listItem.m_targetIndex = position;
                 listItem.m_titleText.setText(theItem.getTitle());

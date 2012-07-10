@@ -62,4 +62,12 @@ public class AbianReaderItemViewFragment extends SherlockFragment
 
         return m_itemView;
     }
+
+    @Override 
+    public void onHiddenChanged(boolean hidden)
+    {
+        m_itemView.resetScrollPosition();
+
+        super.onHiddenChanged(hidden);
+    }
 }

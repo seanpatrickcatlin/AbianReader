@@ -18,7 +18,6 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 /*
  TODO List
  Short Term Goals
- - Cache images (thumbnails and feature image downloads)
 
  Long Term Goals
  - Have multiple lists that you can swipe between, "Latest", "Features", "Android", etc...
