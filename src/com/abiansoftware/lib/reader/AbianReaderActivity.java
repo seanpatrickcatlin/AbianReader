@@ -47,7 +47,7 @@ public class AbianReaderActivity extends SherlockFragmentActivity
     @SuppressLint("HandlerLeak")
     @Override
     public void onCreate(Bundle savedInstanceState)
-    {
+    {   
         super.onCreate(savedInstanceState);
 
         // set the view
@@ -55,7 +55,7 @@ public class AbianReaderActivity extends SherlockFragmentActivity
 
         m_splashScreenDialog = null;
 
-        showSplashScreen();
+        showSplashScreen();        
 
         m_activityHandler = new Handler()
         {

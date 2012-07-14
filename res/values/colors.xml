@@ -7,5 +7,6 @@
     <color name="list_item_read_selected_color">#0099cc</color>
     <color name="list_item_unread_color">#FFFFFF</color>
     <color name="list_item_read_color">#E0E0E0</color>
+    <color name="view_page_indicator_color">#FF41C045</color>
 
 </resources>

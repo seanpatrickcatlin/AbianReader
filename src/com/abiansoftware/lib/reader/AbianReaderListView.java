@@ -83,8 +83,11 @@ class AbianReaderListView
         m_pageIndicator.setViewPager(m_headerViewPager);
 
         // m_pageIndicator.setPageColor(0xFFcbedcc);
-        m_pageIndicator.setFillColor(0xFF41c045);
-        m_pageIndicator.setStrokeColor(0xFF41c045);
+
+        int indicatorColor = AbianReaderApplication.getInstance().getResources().getColor(R.color.view_page_indicator_color);
+        
+        m_pageIndicator.setFillColor(indicatorColor);
+        m_pageIndicator.setStrokeColor(indicatorColor);
         m_pageIndicator.setSnap(true);
 
         ViewGroup.LayoutParams headerViewPagerLayoutParams = m_headerViewPager.getLayoutParams();
