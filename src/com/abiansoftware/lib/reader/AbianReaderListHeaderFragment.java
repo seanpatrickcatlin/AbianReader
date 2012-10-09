@@ -19,10 +19,18 @@ package com.abiansoftware.lib.reader;
 
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
 import com.actionbarsherlock.app.SherlockFragment;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +41,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class AbianReaderListHeaderFragment extends SherlockFragment implements OnClickListener
+public class AbianReaderListHeaderFragment extends SherlockFragment implements OnClickListener, ImageLoadingListener
 {
     private boolean m_bViewHasBeenCreated;
     private RelativeLayout m_headerView;
@@ -46,6 +54,8 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
     private static Handler s_handler = null;
     private Runnable m_updateRunnable;
 
+    private DisplayImageOptions m_featureDisplayOptions;
+    
     public AbianReaderListHeaderFragment()
     {
         super();
@@ -57,6 +67,15 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
         m_featuredArticleNumber = -1;
         m_bViewHasBeenCreated = false;
 
+        m_featureDisplayOptions = new DisplayImageOptions.Builder()
+        .showStubImage(R.drawable.app_header_logo)
+        .showImageForEmptyUri(R.drawable.app_header_logo)
+        .cacheInMemory()
+        .cacheOnDisc()
+        .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+        .displayer(new RoundedBitmapDisplayer(0))
+        .build();
+        
         if(s_handler == null)
         {
             s_handler = new Handler();
@@ -118,6 +137,14 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
             return;
         }
 
+        if(Looper.myLooper() != Looper.getMainLooper())
+        {
+            // we are not on the main thread, call the runnable
+            Log.e("TAG", "updateContent is not running on the main thread");
+            s_handler.postDelayed(m_updateRunnable, 500);
+            return;
+        }
+        
         AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
         if((m_featuredArticleNumber >= 0) && (m_featuredArticleNumber < abianReaderAppData.getNumberedOfFeaturedArticles()))
@@ -129,7 +156,22 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
                 m_headerTextView.setVisibility(View.VISIBLE);
                 m_headerTextView.setText(theItemData.getTitle());
 
-                if(theItemData.getFeaturedImageBitmap() == null)
+                m_headerProgressBar.setVisibility(View.GONE);
+
+                ImageLoader theImageLoader = ImageLoader.getInstance();
+                theImageLoader.displayImage(theItemData.getFeaturedImageLink(), m_headerImageView, m_featureDisplayOptions, this);
+
+                //s_handler.postDelayed(m_updateRunnable, 500);
+
+                /*
+                //if(theItemData.getFeaturedImageBitmap() == null)
+                if(theItemData.getFeaturedImageLink().length() > 0)
+                {
+                    m_headerImageView.setImageURI(Uri.parse(theItemData.getFeaturedImageLink()));
+                    m_headerProgressBar.setVisibility(View.GONE);
+                    m_headerImageView.setVisibility(View.VISIBLE);
+                }
+                else
                 {
                     m_headerImageView.setImageBitmap(null);
                     m_headerImageView.setVisibility(View.GONE);
@@ -137,12 +179,7 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
 
                     s_handler.postDelayed(m_updateRunnable, 500);
                 }
-                else
-                {
-                    m_headerImageView.setImageBitmap(theItemData.getFeaturedImageBitmap());
-                    m_headerProgressBar.setVisibility(View.GONE);
-                    m_headerImageView.setVisibility(View.VISIBLE);
-                }
+                */
             }
             else
             {
@@ -171,5 +208,29 @@ public class AbianReaderListHeaderFragment extends SherlockFragment implements O
         itemIntent.putExtra(AbianReaderApplication.CHOSEN_ARTICLE_NUMBER, articlePosition);
 
         startActivity(itemIntent);
+    }
+
+    @Override
+    public void onLoadingCancelled()
+    {
+        //Log.e(getClass().getName(), "onLoadingCancelled");
+    }
+
+    @Override
+    public void onLoadingComplete(Bitmap arg0)
+    {
+        //Log.e(getClass().getName(), "onLoadingComplete");
+    }
+
+    @Override
+    public void onLoadingFailed(FailReason arg0)
+    {
+        //Log.e(getClass().getName(), "onLoadingFailed");
+    }
+
+    @Override
+    public void onLoadingStarted()
+    {
+        //Log.e(getClass().getName(), "onLoadingStarted");
     }
 }

@@ -25,6 +25,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -38,6 +39,7 @@ import android.support.v4.view.ViewPager.SimpleOnPageChangeListener;
 public class AbianReaderItemActivity extends SherlockFragmentActivity
 {
     private static int SHARE_ITEM_ID = 22611;
+    private static int OPEN_BROWSER_ITEM_ID = 22612;
 
     private ViewPager m_itemViewPager;
     private TitlePageIndicator m_itemViewPageIndicator;
@@ -172,6 +174,15 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
 
             return true;
         }
+        else if(item.getItemId() == OPEN_BROWSER_ITEM_ID)
+        {
+            AbianReaderItem targetItem = AbianReaderApplication.getData().getItemNumber(m_currentPage);
+
+            String url = targetItem.getLink();
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(url));
+            startActivity(i);
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -179,6 +190,10 @@ public class AbianReaderItemActivity extends SherlockFragmentActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
+        MenuItem openBrowserMenuItem = menu.add(Menu.NONE, OPEN_BROWSER_ITEM_ID, Menu.NONE, "Open");
+        openBrowserMenuItem.setIcon(R.drawable.browser);
+        openBrowserMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
         MenuItem refreshMenuItem = menu.add(Menu.NONE, SHARE_ITEM_ID, Menu.NONE, "Share");
         refreshMenuItem.setIcon(R.drawable.share);
         refreshMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);

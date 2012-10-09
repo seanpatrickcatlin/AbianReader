@@ -20,10 +20,17 @@ package com.abiansoftware.lib.reader;
 import java.util.Vector;
 
 import com.abiansoftware.lib.reader.AbianReaderData.AbianReaderItem;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.viewpagerindicator.CirclePageIndicator;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -54,7 +61,7 @@ class AbianReaderListView
     private AbianReaderListHeaderViewPagerAdapter m_headerViewPagerAdapter;
 
     private CirclePageIndicator m_pageIndicator;
-
+    
     public AbianReaderListView()
     {
         m_preferredListItemHeight = -1;
@@ -104,6 +111,8 @@ class AbianReaderListView
         m_headerViewPagerLayout.setVisibility(View.GONE);
         m_headerViewPager.setVisibility(View.GONE);
         m_pageIndicator.setVisibility(View.GONE);
+
+        AbianReaderApplication.getInstance().registerAdapter(m_abianReaderListAdapter);
     }
 
     public int getPreferredListItemHeight()
@@ -112,7 +121,7 @@ class AbianReaderListView
     }
 
     public void updateList()
-    {
+    {   
         m_abianReaderListAdapter.notifyDataSetChanged();
         m_headerViewPagerAdapter.notifyDataSetChanged();
 
@@ -150,23 +159,31 @@ class AbianReaderListView
         }
     }
 
-    private static class AbianReaderListAdapter extends BaseAdapter implements OnClickListener
+    private static class AbianReaderListAdapter extends BaseAdapter implements OnClickListener, ImageLoadingListener
     {
         private LayoutInflater m_layoutInflater;
+        private DisplayImageOptions m_thumbnailDisplayOptions;
 
         public AbianReaderListAdapter(Context context)
         {
             m_layoutInflater = LayoutInflater.from(context);
-        }
 
+            m_thumbnailDisplayOptions = new DisplayImageOptions.Builder()
+                .showImageForEmptyUri(R.drawable.app_icon)
+                .cacheInMemory()
+                .cacheOnDisc()
+                .imageScaleType(ImageScaleType.IN_SAMPLE_POWER_OF_2)
+                .displayer(new RoundedBitmapDisplayer(0))
+                .build();
+        }
+        
         public int getCount()
         {
             AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
-            AbianReaderDataFetcher abianReaderAppDataFetcher = AbianReaderApplication.getDataFetcher();
 
             int countVal = abianReaderAppData.getNumberOfItems();
 
-            if((countVal < AbianReaderData.MAX_DATA_ITEMS) && (abianReaderAppDataFetcher.getThereAreNoMoreItems() == false))
+            if(countVal < AbianReaderData.MAX_DATA_ITEMS)
             {
                 countVal++;
             }
@@ -186,7 +203,7 @@ class AbianReaderListView
 
         public View getView(int position, View convertView, ViewGroup parent)
         {
-            RSSFeedListItem listItem = null;
+            final RSSFeedListItem listItem;
 
             if(convertView == null)
             {
@@ -290,14 +307,8 @@ class AbianReaderListView
 
                 listItem.m_detailsText.setText(detailsText);
 
-                if(theItem.getThumbnailBitmap() != null)
-                {
-                    listItem.m_imageView.setImageBitmap(theItem.getThumbnailBitmap());
-                }
-                else
-                {
-                    listItem.m_imageView.setImageResource(R.drawable.app_icon);
-                }
+                ImageLoader theImageLoader = ImageLoader.getInstance();
+                theImageLoader.displayImage(theItem.getThumbnailLink(), listItem.m_imageView, m_thumbnailDisplayOptions, this);
             }
 
             convertView.setOnClickListener(this);
@@ -337,6 +348,34 @@ class AbianReaderListView
                     m_layoutInflater.getContext().startActivity(itemIntent);
                 }
             }
+        }
+
+        @Override
+        public void onLoadingCancelled()
+        {
+            //Log.e(this.getClass().toString(), "onLoadingCancelled");
+            //
+        }
+
+        @Override
+        public void onLoadingComplete(Bitmap arg0)
+        {
+            //notifyDataSetChanged();
+            //Log.e(this.getClass().toString(), "onLoadingComplete");
+        }
+
+        @Override
+        public void onLoadingFailed(FailReason arg0)
+        {
+            //
+            //Log.e(this.getClass().toString(), "onLoadingFailed");
+        }
+
+        @Override
+        public void onLoadingStarted()
+        {
+            //
+            //Log.e(this.getClass().toString(), "onLoadingStarted");
         }
     }
 
@@ -401,5 +440,5 @@ class AbianReaderListView
 
             super.notifyDataSetChanged();
         }
-    }
+    }    
 }

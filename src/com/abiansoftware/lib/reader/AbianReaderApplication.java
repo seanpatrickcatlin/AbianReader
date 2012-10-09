@@ -40,21 +40,25 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import android.widget.BaseAdapter;
 
 public class AbianReaderApplication extends Application
 {
     private static final String READ_URL_PREFERENCES = "AbianReaderReadUrlList";
     private static final String KEY_READ_URL_LIST = "readUrlList";
-    
+
     private static AsyncHttpClient s_asyncHttpClient = null;
     private static AbianReaderApplication s_singleton = null;
     private AbianReaderData m_data;
@@ -63,12 +67,12 @@ public class AbianReaderApplication extends Application
     public static final String CHOSEN_ARTICLE_NUMBER = "AbianReaderChosenArticleNumber";
     public static final float FEATURED_IMAGE_SIZE = 2.5f;
     public static final int MSG_DATA_UPDATED = 22609;
-    
 
     public static int s_width = 100;
     public static int s_height = 100;
 
     private Vector<Handler> m_handlerVector;
+    private Vector<BaseAdapter> m_adapterVector;
 
     private boolean m_bSplashScreenHasBeenShown;
 
@@ -78,6 +82,18 @@ public class AbianReaderApplication extends Application
     public void onCreate()
     {
         s_singleton = this;
+
+        ImageLoader theImageLoader = ImageLoader.getInstance();
+
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+            .threadPoolSize(4)
+            .threadPriority(Thread.NORM_PRIORITY - 1)
+            .memoryCacheSize(2 * 1024 * 1024)
+            .denyCacheImageMultipleSizesInMemory()
+            //.enableLogging()
+            .build();
+
+        theImageLoader.init(config);
 
         s_asyncHttpClient = new AsyncHttpClient();
         s_asyncHttpClient.getHttpClient().getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
@@ -94,6 +110,7 @@ public class AbianReaderApplication extends Application
         s_height = theDisplayMetrics.heightPixels;
 
         m_handlerVector = new Vector<Handler>();
+        m_adapterVector = new Vector<BaseAdapter>();
 
         m_bSplashScreenHasBeenShown = false;
 
@@ -159,6 +176,16 @@ public class AbianReaderApplication extends Application
         m_handlerVector.remove(oldHandler);
     }
 
+    public void registerAdapter(BaseAdapter newAdapter)
+    {
+        m_adapterVector.add(newAdapter);
+    }
+
+    public void unregisterAdapter(BaseAdapter oldAdapter)
+    {
+        m_adapterVector.remove(oldAdapter);
+    }
+
     public void sendDataUpdatedMessage()
     {
         for(int i = 0; i < m_handlerVector.size(); i++)
@@ -167,9 +194,24 @@ public class AbianReaderApplication extends Application
 
             if(thisHandler != null)
             {
-                thisHandler.sendEmptyMessage(AbianReaderApplication.MSG_DATA_UPDATED);
+                //thisHandler.sendEmptyMessage(AbianReaderApplication.MSG_DATA_UPDATED);
+                Message newMessage = Message.obtain();
+                newMessage.what = AbianReaderApplication.MSG_DATA_UPDATED;
+                thisHandler.sendMessageAtFrontOfQueue(newMessage);
             }
         }
+
+        /*
+        for(int i = 0; i < m_adapterVector.size(); i++)
+        {
+            BaseAdapter thisAdapter = m_adapterVector.get(i);
+
+            if(thisAdapter != null)
+            {
+                //thisAdapter.notifyDataSetChanged();
+            }
+        }
+        */
     }
 
     public void setSplashScreenHasBeenShown()

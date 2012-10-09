@@ -151,7 +151,7 @@ public class AbianReaderDataFetcher
 
         refreshFeed();
     }
-    
+
     public void refreshFeed()
     {
         if((m_refreshFeedTask == null) || (m_refreshFeedTask.getStatus() == AsyncTask.Status.FINISHED) || m_refreshFeedTask.isCancelled())
@@ -224,7 +224,18 @@ public class AbianReaderDataFetcher
                     SAXParser theSaxParser = theSaxParserFactory.newSAXParser();
                     XMLReader theXmlReader = theSaxParser.getXMLReader();
 
-                    theXmlReader.setContentHandler(new RSSFeedHandler());
+                    boolean bIsFeedBurner = false;
+                    bIsFeedBurner = AbianReaderApplication.getInstance().getString(R.string.feed_type_str).equalsIgnoreCase("feedburner");
+
+                    if(bIsFeedBurner)
+                    {
+                        Log.v(TAG, "FEEDBURNER!!!!");
+                        theXmlReader.setContentHandler(new FeedBurnerFeedHandler());
+                    }
+                    else
+                    {
+                        theXmlReader.setContentHandler(new RSSFeedHandler());
+                    }
 
                     theXmlReader.parse(new InputSource(is));
                 }
@@ -235,7 +246,7 @@ public class AbianReaderDataFetcher
             }
             catch(Exception e)
             {
-                Log.w(getClass().getName(), "Exception thrown: " + e.toString() + ", Url: " + urlToConnectTo);
+                Log.w(getClass().getName(), "Exception thrown: " + e.getMessage() + ", Url: " + urlToConnectTo);
             }
 
             return null;
@@ -267,6 +278,8 @@ public class AbianReaderDataFetcher
         @Override
         protected void onPostExecute(Void param)
         {
+            m_bIsRefreshingFeed = false;
+            
             AbianReaderData abianReaderAppData = AbianReaderApplication.getData();
 
             if(abianReaderAppData == null)
@@ -303,7 +316,6 @@ public class AbianReaderDataFetcher
                 }
 
                 abianReaderAppData.addItem(thisItem);
-                AbianReaderApplication.getInstance().sendDataUpdatedMessage();
 
                 if(s_bTryJson)
                 {
@@ -311,9 +323,10 @@ public class AbianReaderDataFetcher
                 }
             }
 
-            m_stagingVector.clear();
+            Log.e("TAG", "Calling send data updated message from the data fetcher");
+            AbianReaderApplication.getInstance().sendDataUpdatedMessage();
 
-            m_bIsRefreshingFeed = false;
+            m_stagingVector.clear();
 
             if(m_bLastConnectionHadError)
             {
@@ -466,6 +479,206 @@ public class AbianReaderDataFetcher
                 m_pubDate = thisText;
             }
             else if((qName.compareTo(RSS_CREATOR) == 0) || (qName.compareTo(XML_CREATOR) == 0))
+            {
+                m_creator = thisText;
+            }
+            else if(qName.compareTo(RSS_COMMENTS) == 0)
+            {
+                m_comments = thisText;
+            }
+            else if(qName.compareTo(XML_THUMBNAIL_LINK) == 0)
+            {
+                m_thumbnailLink = thisText;
+            }
+            else if(qName.compareTo(XML_FEATURED_IMAGE_LINK) == 0)
+            {
+                m_featuredImageLink = thisText;
+            }
+            else if(qName.compareTo(XML_IS_FEATURED) == 0)
+            {
+                m_bIsFeatured = Boolean.valueOf(thisText).booleanValue();
+            }
+            else if((qName.compareTo(RSS_COMMENT_COUNT) == 0) || (qName.compareTo(XML_COMMENT_COUNT) == 0))
+            {
+                try
+                {
+                    m_commentCount = Integer.parseInt(thisText);
+                }
+                catch(Exception e)
+                {
+                    Log.e(TAG, e.toString());
+                }
+            }
+            else if(qName.compareTo(XML_PAGE) == 0)
+            {
+                try
+                {
+                    m_abianReaderData.setPageNumber(Integer.parseInt(thisText));
+                }
+                catch(Exception e)
+                {
+                    Log.e(TAG, e.toString());
+                }
+            }
+            else if(qName.compareTo(XML_TIME) == 0)
+            {
+                try
+                {
+                    m_abianReaderData.setLastUpdateTime(Long.parseLong(thisText));
+                }
+                catch(Exception e)
+                {
+                    Log.e(TAG, e.toString());
+                }
+            }
+        }
+
+        @Override
+        public void error(SAXParseException e) throws SAXException
+        {
+            Log.e(TAG, "SAX error: " + e.toString());
+        }
+
+        @Override
+        public void warning(SAXParseException e) throws SAXException
+        {
+            Log.w(TAG, "SAX warning: " + e.toString());
+        }
+    }
+
+    private class FeedBurnerFeedHandler extends DefaultHandler
+    {
+        private AbianReaderData m_abianReaderData = null;
+        private StringBuffer m_currentCharactersStringBuffer;
+
+        private String m_title;
+        private String m_link;
+        private String m_description;
+        private String m_content;
+        private String m_pubDate;
+        private String m_creator;
+        private String m_comments;
+        private String m_thumbnailLink;
+        private String m_featuredImageLink;
+        private boolean m_bIsFeatured;
+        private int m_commentCount;
+
+        @Override
+        public void startDocument() throws SAXException
+        {
+        }
+
+        @Override
+        public void endDocument() throws SAXException
+        {
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException
+        {
+            if(qName.compareTo("entry") == 0)
+            {
+                m_title = "";
+                m_description = "";
+                m_link = "";
+                m_content = "";
+                m_pubDate = "";
+                m_creator = "";
+                m_comments = "";
+                m_thumbnailLink = "";
+                m_featuredImageLink = "";
+                m_bIsFeatured = false;
+                m_commentCount = 0;
+
+                m_currentCharactersStringBuffer = new StringBuffer();
+            }
+            else if((qName.compareTo("title") == 0) || (qName.compareTo("feedburner:origLink") == 0) || (qName.compareTo(RSS_DESCRIPTION) == 0) || (qName.compareTo("content") == 0) || (qName.compareTo("published") == 0)
+                    || (qName.compareTo("name") == 0) || (qName.compareTo(RSS_COMMENTS) == 0) || (qName.compareTo(RSS_COMMENT_COUNT) == 0) || (qName.compareTo(XML_PAGE) == 0) || (qName.compareTo(XML_TIME) == 0)
+                    || (qName.compareTo(XML_CONTENT) == 0) || (qName.compareTo(XML_THUMBNAIL_LINK) == 0) || (qName.compareTo(XML_FEATURED_IMAGE_LINK) == 0) || (qName.compareTo(XML_IS_FEATURED) == 0) || (qName.compareTo(XML_CREATOR) == 0)
+                    || (qName.compareTo(XML_COMMENT_COUNT) == 0))
+            {
+                m_currentCharactersStringBuffer = new StringBuffer();
+            }
+            else
+            {
+                m_currentCharactersStringBuffer = null;
+            }
+
+            if(qName.compareTo("media:thumbnail") == 0)
+            {
+                m_thumbnailLink = attributes.getValue("url");
+            }
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException
+        {
+            if(m_currentCharactersStringBuffer != null)
+            {
+                m_currentCharactersStringBuffer.append(ch, start, length);
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException
+        {
+            String thisText = "";
+
+            if(m_currentCharactersStringBuffer != null)
+            {
+                thisText = m_currentCharactersStringBuffer.toString();
+            }
+
+            if(qName.compareTo("entry") == 0)
+            {
+                AbianReaderItem newItem = new AbianReaderItem();
+
+                newItem.setTitle(m_title);
+                newItem.setDescription(m_description);
+                newItem.setLink(m_link);
+                newItem.setContent(m_content);
+                newItem.setPubDate(m_pubDate);
+                newItem.setCreator(m_creator);
+                newItem.setCommentsLink(m_comments);
+                newItem.setCommentCount(m_commentCount);
+                newItem.setThumbnailLink(m_thumbnailLink);
+                newItem.setFeaturedImageLink(m_featuredImageLink, m_bIsFeatured);
+
+                m_stagingVector.add(newItem);
+
+                m_title = "";
+                m_description = "";
+                m_link = "";
+                m_content = "";
+                m_pubDate = "";
+                m_creator = "";
+                m_comments = "";
+                m_thumbnailLink = "";
+                m_featuredImageLink = "";
+                m_bIsFeatured = false;
+                m_commentCount = 0;
+            }
+            else if(qName.compareTo("title") == 0)
+            {
+                m_title = thisText;
+            }
+            else if(qName.compareTo("feedburner:origLink") == 0)
+            {
+                m_link = thisText;
+            }
+            else if(qName.compareTo(RSS_DESCRIPTION) == 0)
+            {
+                m_description = thisText;
+            }
+            else if((qName.compareTo("content") == 0) || (qName.compareTo(XML_CONTENT) == 0))
+            {
+                m_content = thisText;
+            }
+            else if(qName.compareTo("published") == 0)
+            {
+                m_pubDate = thisText;
+            }
+            else if((qName.compareTo("name") == 0) || (qName.compareTo(XML_CREATOR) == 0))
             {
                 m_creator = thisText;
             }

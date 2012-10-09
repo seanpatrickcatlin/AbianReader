@@ -162,11 +162,12 @@ class AbianReaderItemView extends LinearLayout
 
             // ourHeader += "<br />";
 
-            String ourFooter = "";
-            ourFooter += "<br /><a href=\"" + theItem.getLink() + "\" target=\"_blank\">Open the full article in your browser</a><br />";
-            ourFooter += "</body></html>";
+            String ourFooter = "<br /><br /></body></html>";
 
-            String ourHtml = ourHeader + theItem.getContent() + ourFooter;
+            //String ourHtml = theItem.getContent();
+            String ourHtml = ourHeader;
+            ourHtml += theItem.getContent();
+            ourHtml += ourFooter;
 
             TagNode theCleanTagNode = m_htmlCleaner.clean(ourHtml);
 
@@ -194,6 +195,9 @@ class AbianReaderItemView extends LinearLayout
             {
                 e.printStackTrace();
             }
+
+            //ourHtml = ourHeader + ourHtml;
+            //ourHtml += ourFooter;
 
             m_webView.loadDataWithBaseURL(null, ourHtml, "text/html", "UTF-8", null);
             // m_webView.loadDataWithBaseURL(theItem.getLink(), ourHtml,

@@ -4,6 +4,7 @@
     <string name="site_name_str">Droid WordPress Feed Reader Site</string>
     <string name="site_url_str"></string>
     <string name="feed_url_str"></string>
+    <string name="feed_type_str"></string>
     <string name="loading_title_str"></string>
     <string name="loading_message_str">Loading. Please Wait</string>
     <string name="empty_str"></string>

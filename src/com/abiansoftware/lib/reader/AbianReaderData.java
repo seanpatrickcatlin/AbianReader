@@ -17,8 +17,10 @@ along with AbianReader.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.abiansoftware.lib.reader;
 
+/*
 import java.io.File;
 import java.io.FileOutputStream;
+*/
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,6 +37,7 @@ import org.json.JSONObject;
 
 import com.loopj.android.http.*;
 
+import android.os.Looper;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -44,7 +47,7 @@ public class AbianReaderData
 
     public static final int MAX_DATA_ITEMS = 100;
 
-    private static Object SYNC_OBJ = new Object();
+    //private static Object SYNC_OBJ = new Object();
 
     static public class AbianReaderItem
     {
@@ -262,6 +265,9 @@ public class AbianReaderData
 
             m_thumbnailLink = thumbnailLink;
 
+            AbianReaderApplication.getInstance().sendDataUpdatedMessage();
+
+            /*
             if(thumbnailLink.length() > 0)
             {
                 // check to see if this image has been cached already
@@ -310,8 +316,10 @@ public class AbianReaderData
                     });
                 }
             }
+            */
         }
 
+        /*
         private String getThumbnailImageCacheFilePath()
         {
             File appCacheDirectory = AbianReaderApplication.getInstance().getCacheDir();
@@ -379,6 +387,7 @@ public class AbianReaderData
                 AbianReaderApplication.getInstance().sendDataUpdatedMessage();
             }
         }
+        */
 
         public String getThumbnailLink()
         {
@@ -401,6 +410,9 @@ public class AbianReaderData
 
             m_bIsFeatured = bIsFeatured;
 
+            AbianReaderApplication.getInstance().sendDataUpdatedMessage();
+
+            /*
             if((featuredImageLink.length() > 0) && m_bIsFeatured)
             {
                 // check to see if this image has been cached already
@@ -449,6 +461,7 @@ public class AbianReaderData
                     });
                 }
             }
+            */
         }
 
         public String getFeaturedImageLink()
@@ -497,6 +510,8 @@ public class AbianReaderData
             {
                 extraJsonDataUrl += ",tags";
             }
+
+            extraJsonDataUrl += "&no_redirect=true";
 
             AbianReaderApplication.DoHttpGet(extraJsonDataUrl, null, new AsyncHttpResponseHandler()
             {
@@ -606,6 +621,7 @@ public class AbianReaderData
     }
 
     private Vector<AbianReaderItem> m_itemVector;
+    private Vector<AbianReaderItem> m_newItemVector;
     private Time m_lastUpdateTime;
     private int m_pageNumber;
     private int m_autoUpdateTimeInMinutes;
@@ -613,6 +629,7 @@ public class AbianReaderData
     public AbianReaderData()
     {
         m_itemVector = new Vector<AbianReaderItem>();
+        m_newItemVector = new Vector<AbianReaderItem>();
         m_itemVector.clear();
         m_lastUpdateTime = new Time(Time.getCurrentTimezone());
         m_lastUpdateTime.set(0);
@@ -620,9 +637,50 @@ public class AbianReaderData
         m_autoUpdateTimeInMinutes = 0;
     }
 
-    public void addItem(AbianReaderItem newItem)
+    public synchronized void addItem(AbianReaderItem newItem)
     {
-        m_itemVector.add(newItem);
+        //Log.e(getClass().getName(), "Enter addItem");
+        
+        if(Looper.myLooper() != Looper.getMainLooper())
+        {
+            //Log.e(getClass().getName(), "not on main thread, adding to the new item vector");
+            
+            m_newItemVector.add(newItem);
+        }
+        else
+        {
+            //Log.e(getClass().getName(), "on main thread, adding to the item vector");
+            
+            m_itemVector.add(newItem);
+        }
+
+        //Log.e(getClass().getName(), "Leave addItem");
+    }
+
+    public synchronized void syncItems()
+    {
+        if(Looper.myLooper() == Looper.getMainLooper())
+        {
+            if(m_newItemVector.size() > 0)
+            {
+                //Log.e(getClass().getName(), "Enter syncItems on main thread");
+
+                //Log.e(getClass().getName(), "on main thread adding vectors");
+
+                for(int i=0; i< m_newItemVector.size(); i++)
+                {
+                    m_itemVector.add(m_newItemVector.get(i));
+                }
+
+                m_newItemVector.clear();
+
+                //Log.e(getClass().getName(), "Exit syncItems");
+            }
+        }
+        else
+        {
+            Log.e(getClass().getName(), "syncItems not on main thread");
+        }
     }
 
     public int getNumberOfItems()
@@ -640,10 +698,11 @@ public class AbianReaderData
         return null;
     }
 
-    public void clear()
+    public synchronized void clear()
     {
         m_itemVector.clear();
         m_lastUpdateTime.set(0);
+        m_newItemVector.clear();
     }
 
     public void setLastUpdateTimeToNow()

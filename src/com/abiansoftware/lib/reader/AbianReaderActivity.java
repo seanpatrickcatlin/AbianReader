@@ -33,8 +33,6 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 public class AbianReaderActivity extends SherlockFragmentActivity
 {
-    // private static final String TAG = "AbianReaderActivity";
-
     public static final int REFRESH_ITEM_ID = 22610;
 
     private AbianReaderListView m_rssFeedListView;
@@ -63,7 +61,9 @@ public class AbianReaderActivity extends SherlockFragmentActivity
             public void handleMessage(Message msg)
             {
                 if(msg.what == AbianReaderApplication.MSG_DATA_UPDATED)
-                {
+                {   
+                    AbianReaderApplication.getData().syncItems();
+
                     updateListView();
                 }
             }
