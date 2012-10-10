@@ -1,10 +1,11 @@
 AbianReader
 ===========
 
-http://abiansoftware.com
+An Abian Software project http://abiansoftware.com
 
 Android library project for creating applications that act as a reader for websites running Wordpress, Blogger and Feedburner is in development
 
+Abian Reader is release under v3 of the GPL
 
 The Abian Reader Project uses the following Open Source Projects
 
